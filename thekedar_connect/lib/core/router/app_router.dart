@@ -10,6 +10,8 @@ import '../../features/contractor/presentation/screens/wallet_screen.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../analytics/analytics_repository.dart';
 
+import '../../features/notifications/presentation/screens/notification_center_screen.dart';
+
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/splash',
@@ -74,6 +76,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/chat_list',
         builder: (context, state) => const MainNavigationScreen(initialIndex: 2),
+      ),
+      
+      // Notification Center Route
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationCenterScreen(),
       ),
     ],
   );

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "439371885183",
+    "project_id": "tekdaar-c97be",
+    "storage_bucket": "tekdaar-c97be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:439371885183:android:ef41f3a1b26d885a16ed4a",
+        "android_client_info": {
+          "package_name": "com.thekedar.thekedar_connect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByoZYwNI5bS9bmDCWD0vs4PbVuk4wMGWA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

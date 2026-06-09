@@ -5,6 +5,8 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/analytics/analytics_repository.dart';
 
+import 'core/notifications/fcm_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -15,6 +17,9 @@ void main() async {
     anonKey:
         'sb_publishable_8mCUlHYxLAUhM9MYQ68Q2Q_b24pi85s',
   );
+
+  // Initialize Firebase Cloud Messaging
+  await FcmService.instance.initialize();
 
   // Log startup event
   await AnalyticsRepository.instance.logEvent('session_start', 'app_launch');
