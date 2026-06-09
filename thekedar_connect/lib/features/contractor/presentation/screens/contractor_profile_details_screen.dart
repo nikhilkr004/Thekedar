@@ -430,7 +430,7 @@ class _ContractorProfileDetailsScreenState extends State<ContractorProfileDetail
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) => Container(
                                     color: const Color(0xFFF1F5F9),
-                                    child: const Icon(Icons.broken_image_outlined, color: Colors.slate),
+                                    child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
                                   ),
                                 ),
                               ),
