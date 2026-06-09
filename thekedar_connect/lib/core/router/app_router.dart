@@ -8,9 +8,10 @@ import '../../features/projects/presentation/screens/post_project_screen.dart';
 import '../../features/contractor/presentation/screens/send_proposal_screen.dart';
 import '../../features/contractor/presentation/screens/wallet_screen.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../analytics/analytics_repository.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/splash',
     routes: [
       GoRoute(
@@ -76,4 +77,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  router.routerDelegate.addListener(() {
+    try {
+      final location = router.routerDelegate.currentConfiguration.uri.toString();
+      AnalyticsRepository.instance.logEvent('screen_view', location);
+    } catch (_) {}
+  });
+
+  return router;
 });
