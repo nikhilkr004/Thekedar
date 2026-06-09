@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAdminStore } from '@/core/store';
 import { hasPermission } from '@/core/rbac';
+import { supabase } from '@/core/supabase';
 import { 
   LayoutDashboard, 
   Users, 
@@ -90,7 +91,10 @@ export default function Sidebar() {
           </div>
         </div>
         <button
-          onClick={logout}
+          onClick={async () => {
+            await supabase.auth.signOut();
+            logout();
+          }}
           className="w-full flex items-center px-4 py-3 text-sm font-medium text-rose-400 hover:bg-rose-950/20 rounded-xl transition-colors duration-200"
         >
           <LogOut className="w-5 h-5 mr-3 shrink-0" />
