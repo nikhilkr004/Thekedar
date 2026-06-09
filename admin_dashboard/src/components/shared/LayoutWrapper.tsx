@@ -17,9 +17,13 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   
-  // Login form inputs
+  // Login/Register toggle and fields
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('Admin');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -84,6 +88,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     }
     setIsLoading(true);
     setAuthError('');
+    setSuccessMessage('');
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -98,6 +103,57 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     }
   };
 
+  // Handle Supabase Email & Password Registration
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !fullName) {
+      setAuthError('Please fill in all fields.');
+      return;
+    }
+    setIsLoading(true);
+    setAuthError('');
+    setSuccessMessage('');
+    try {
+      // 1. Pre-insert to whitelist to prevent race condition in onAuthStateChange
+      const { error: insertError } = await supabase
+        .from('admin_users')
+        .insert([
+          {
+            email,
+            full_name: fullName,
+            role: role,
+          }
+        ]);
+      if (insertError) throw insertError;
+
+      // 2. Perform signup
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
+        }
+      });
+      if (signUpError) {
+        // Rollback insert if signup failed
+        await supabase.from('admin_users').delete().eq('email', email);
+        throw signUpError;
+      }
+
+      setSuccessMessage('Registration successful! You are now logged in or can log in.');
+      // If user session is active, onAuthStateChange will log them in.
+      // Otherwise allow them to switch to login.
+      setIsRegistering(false);
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setAuthError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -106,7 +162,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     );
   }
 
-  // Render Login Panel if not authenticated
+  // Render Login / Register Panel if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
@@ -128,7 +184,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                 Admin
               </span>
             </h2>
-            <p className="text-sm text-slate-400 mt-1.5 font-medium">SaaS Management Platform Console</p>
+            <p className="text-sm text-slate-400 mt-1.5 font-medium">
+              {isRegistering ? 'Create Operator Account' : 'SaaS Management Platform Console'}
+            </p>
           </div>
 
           {authError && (
@@ -138,8 +196,51 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
             </div>
           )}
 
-          {/* Email/Password Login Form */}
-          <form onSubmit={handleLoginSubmit} className="space-y-5">
+          {successMessage && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs p-3.5 rounded-2xl flex items-start gap-2.5 mb-6 leading-relaxed">
+              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-500" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={isRegistering ? handleRegisterSubmit : handleLoginSubmit} className="space-y-5">
+            {isRegistering && (
+              <>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-3.5 w-4 h-4 text-slate-500" />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="John Doe"
+                      required
+                      disabled={isLoading}
+                      className="w-full bg-slate-950/80 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 text-xs focus:border-sky-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Role Type</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full bg-slate-950/80 border border-slate-800 text-white rounded-xl py-3 px-4 text-xs focus:border-sky-500 focus:outline-none transition-colors cursor-pointer"
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Moderator">Moderator</option>
+                    <option value="Support">Support</option>
+                    <option value="Accountant">Accountant</option>
+                    <option value="Super Admin">Super Admin</option>
+                  </select>
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
               <div className="relative">
@@ -182,9 +283,28 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
               ) : (
                 <ShieldCheck className="w-4 h-4" />
               )}
-              {isLoading ? 'Verifying Credentials...' : 'Authenticate Operator'}
+              {isLoading 
+                ? (isRegistering ? 'Registering Operator...' : 'Verifying Credentials...') 
+                : (isRegistering ? 'Register Operator' : 'Authenticate Operator')}
             </button>
           </form>
+
+          {/* Toggle link */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setAuthError('');
+                setSuccessMessage('');
+              }}
+              disabled={isLoading}
+              className="text-xs text-slate-400 hover:text-sky-400 font-semibold transition-colors focus:outline-none"
+            >
+              {isRegistering 
+                ? 'Already have an operator account? Sign In' 
+                : 'Need to create an admin account? Register here'}
+            </button>
+          </div>
 
         </div>
       </div>
