@@ -454,7 +454,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_outlined, size: 48, color: Colors.slate[300]),
+          Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey[300]),
           const SizedBox(height: 12),
           const Text(
             'All Caught Up!',
