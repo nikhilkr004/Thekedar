@@ -17,7 +17,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final _experienceController = TextEditingController();
   final _bioController = TextEditingController();
 
-  // Customer profile state variables
+  // Customer/Contractor profile state variables
   bool _showUpdateForm = false;
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -28,12 +28,27 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   String _selectedContactMethod = 'Phone Call';
   String? _profilePhotoUrl;
 
+  // Social Links controllers
+  final _whatsappController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _facebookController = TextEditingController();
+  final _websiteController = TextEditingController();
+
+  // Document Upload statuses
+  String _aadhaarStatus = 'PENDING';
+  String _panStatus = 'PENDING';
+  String _gstStatus = 'OPTIONAL';
+
+  // Selected work category (from dropdown list matching mockup)
+  String _selectedWorkCategory = 'General Contractor';
+
   final List<String> _categories = [
     'Mason',
     'Plumber',
     'Electrician',
     'Painter',
     'Carpenter',
+    'General Contractor',
   ];
   final Set<String> _selectedCategories = {};
   bool _isLoading = false;
@@ -102,6 +117,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     _emailController.dispose();
     _addressController.dispose();
     _propertyNotesController.dispose();
+    _whatsappController.dispose();
+    _instagramController.dispose();
+    _facebookController.dispose();
+    _websiteController.dispose();
     super.dispose();
   }
 
@@ -131,7 +150,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           'business_name': _businessNameController.text,
           'years_experience': int.tryParse(_experienceController.text) ?? 0,
           'bio': _bioController.text,
-          'categories': _selectedCategories.toList(),
+          'categories': _selectedCategories.isNotEmpty 
+              ? _selectedCategories.toList() 
+              : [_selectedWorkCategory],
+          'social_links': {
+            'whatsapp': _whatsappController.text,
+            'instagram': _instagramController.text,
+            'facebook': _facebookController.text,
+            'website': _websiteController.text,
+          },
+          'aadhaar_verified': _aadhaarStatus == 'VERIFIED',
+          'pan_verified': _panStatus == 'VERIFIED',
+          'gst_verified': _gstStatus == 'VERIFIED',
           'average_rating': 5.0,
         }).select().single();
 
@@ -146,9 +176,27 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           'business_name': _businessNameController.text,
           'years_experience': int.tryParse(_experienceController.text) ?? 0,
           'bio': _bioController.text,
-          'categories': _selectedCategories.toList(),
+          'categories': _selectedCategories.isNotEmpty 
+              ? _selectedCategories.toList() 
+              : [_selectedWorkCategory],
+          'social_links': {
+            'whatsapp': _whatsappController.text,
+            'instagram': _instagramController.text,
+            'facebook': _facebookController.text,
+            'website': _websiteController.text,
+          },
+          'aadhaar_verified': _aadhaarStatus == 'VERIFIED',
+          'pan_verified': _panStatus == 'VERIFIED',
+          'gst_verified': _gstStatus == 'VERIFIED',
         }).eq('user_id', userId);
       }
+
+      // Update personal info in users table
+      await Supabase.instance.client.from('users').update({
+        'full_name': _fullNameController.text,
+        'phone': _phoneController.text,
+        'address': _addressController.text,
+      }).eq('id', userId);
 
       ref.invalidate(contractorProfileProvider);
       ref.invalidate(walletBalanceProvider);
@@ -189,6 +237,27 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
     return profileAsync.when(
       data: (profile) {
+        if (profile != null && !_isEditing && _businessNameController.text.isEmpty && _fullNameController.text.isEmpty) {
+          // Pre-fill controllers on startup if profile exists
+          _fullNameController.text = profile.fullName;
+          _phoneController.text = profile.phone;
+          _addressController.text = profile.address;
+          _businessNameController.text = profile.businessName;
+          _experienceController.text = profile.yearsExperience.toString();
+          _bioController.text = profile.bio;
+          _whatsappController.text = profile.socialLinks['whatsapp'] ?? '';
+          _instagramController.text = profile.socialLinks['instagram'] ?? '';
+          _facebookController.text = profile.socialLinks['facebook'] ?? '';
+          _websiteController.text = profile.socialLinks['website'] ?? '';
+          _aadhaarStatus = profile.aadhaarVerified ? 'VERIFIED' : 'PENDING';
+          _panStatus = profile.panVerified ? 'VERIFIED' : 'PENDING';
+          _gstStatus = profile.gstVerified ? 'VERIFIED' : 'OPTIONAL';
+          if (profile.categories.isNotEmpty) {
+            _selectedWorkCategory = profile.categories.first;
+            _selectedCategories.clear();
+            _selectedCategories.addAll(profile.categories);
+          }
+        }
         if (profile == null || _isEditing) {
           return _buildProfileSetupForm();
         }
@@ -232,10 +301,23 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             icon: const Icon(Icons.edit_outlined, color: Color(0xFF0284C7)),
             onPressed: () {
               // Pre-fill controllers to edit
+              _fullNameController.text = profile.fullName;
+              _phoneController.text = profile.phone;
+              _addressController.text = profile.address;
               _businessNameController.text = profile.businessName;
               _experienceController.text = profile.yearsExperience.toString();
               _bioController.text = profile.bio;
+              _whatsappController.text = profile.socialLinks['whatsapp'] ?? '';
+              _instagramController.text = profile.socialLinks['instagram'] ?? '';
+              _facebookController.text = profile.socialLinks['facebook'] ?? '';
+              _websiteController.text = profile.socialLinks['website'] ?? '';
+              _aadhaarStatus = profile.aadhaarVerified ? 'VERIFIED' : 'PENDING';
+              _panStatus = profile.panVerified ? 'VERIFIED' : 'PENDING';
+              _gstStatus = profile.gstVerified ? 'VERIFIED' : 'OPTIONAL';
               setState(() {
+                if (profile.categories.isNotEmpty) {
+                  _selectedWorkCategory = profile.categories.first;
+                }
                 _selectedCategories.clear();
                 _selectedCategories.addAll(profile.categories);
                 _isEditing = true;
@@ -584,166 +666,686 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   // -------------------------------------------------------------------
   // B. ORIGINAL CONTRACTOR PROFILE SETUP FORM (For New Contractors)
   // -------------------------------------------------------------------
+  // Calculate dynamic profile visibility percentage based on fields filled
+  int _calculateVisibility() {
+    int percentage = 20;
+    if (_fullNameController.text.trim().isNotEmpty) percentage += 10;
+    if (_phoneController.text.trim().isNotEmpty) percentage += 10;
+    if (_addressController.text.trim().isNotEmpty) percentage += 10;
+    if (_experienceController.text.trim().isNotEmpty) percentage += 10;
+    if (_bioController.text.trim().isNotEmpty) percentage += 15;
+    if (_whatsappController.text.trim().isNotEmpty) percentage += 5;
+    if (_instagramController.text.trim().isNotEmpty) percentage += 5;
+    if (_facebookController.text.trim().isNotEmpty) percentage += 5;
+    if (_websiteController.text.trim().isNotEmpty) percentage += 5;
+    if (_aadhaarStatus == 'VERIFIED') percentage += 10;
+    if (_panStatus == 'VERIFIED') percentage += 5;
+    return percentage > 100 ? 100 : percentage;
+  }
+
   Widget _buildProfileSetupForm() {
     final inputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFDFF),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          onPressed: () {
+            setState(() {
+              _isEditing = false;
+            });
+          },
+        ),
         title: const Text(
-          'Contractor Profile Setup',
+          'Thekedar Connect',
           style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Complete your Business Profile',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Help clients understand your skills and experience details.',
-              style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 24),
-
-            TextField(
-              controller: _businessNameController,
-              decoration: InputDecoration(
-                labelText: 'Business Name',
-                fillColor: Colors.white,
-                filled: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _experienceController,
-              decoration: InputDecoration(
-                labelText: 'Years of Experience',
-                fillColor: Colors.white,
-                filled: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _bioController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Bio / Business Scope description...',
-                fillColor: Colors.white,
-                filled: true,
-                contentPadding: const EdgeInsets.all(20),
-                enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            const Text(
-              'Service Categories Offered',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _categories.map((c) {
-                final isSelected = _selectedCategories.contains(c);
-                return FilterChip(
-                  label: Text(c),
-                  selected: isSelected,
-                  selectedColor: const Color(0xFFE0F2FE),
-                  checkmarkColor: const Color(0xFF0284C7),
-                  backgroundColor: const Color(0xFFF1F5F9),
-                  labelStyle: TextStyle(
-                    color: isSelected ? const Color(0xFF0369A1) : const Color(0xFF475569),
-                    fontWeight: FontWeight.bold,
-                  ),
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedCategories.add(c);
-                      } else {
-                        _selectedCategories.remove(c);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 28),
-
-            const Text(
-              'KYC Verification Documents',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
-            ),
-            const SizedBox(height: 12),
-            Row(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(child: _buildUploadButton('Aadhaar')),
-                const SizedBox(width: 10),
-                Expanded(child: _buildUploadButton('PAN')),
-                const SizedBox(width: 10),
-                Expanded(child: _buildUploadButton('GST')),
+                // 1. Header Text
+                const Text(
+                  'Professional Verification',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Complete your profile to unlock high-value contracts. Verified professionals receive 3x more project invitations.',
+                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+
+                // 2. Personal Information Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.person_outline, color: Color(0xFF0284C7), size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Personal Information',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'FULL NAME',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _fullNameController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'John Doe',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.person_outline, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'CONTACT NUMBER',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _phoneController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: '+91 98765 43210',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.phone_outlined, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'PERMANENT ADDRESS',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _addressController,
+                        onChanged: (_) => setState(() {}),
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Building, Street, Area, City, PIN Code',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Padding(
+                            padding: EdgeInsets.only(bottom: 30),
+                            child: Icon(Icons.location_on_outlined, size: 18),
+                          ),
+                          contentPadding: const EdgeInsets.all(16),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 3. Professional Details Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.work_outline, color: Color(0xFF0284C7), size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Professional Details',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'WORK CATEGORY',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<String>(
+                        value: _selectedWorkCategory,
+                        dropdownColor: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        decoration: InputDecoration(
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder,
+                        ),
+                        items: _categories.map((c) {
+                          return DropdownMenuItem<String>(
+                            value: c,
+                            child: Text(c, style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A))),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedWorkCategory = val;
+                              _selectedCategories.clear();
+                              _selectedCategories.add(val);
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'YEARS OF EXPERIENCE',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _experienceController,
+                        onChanged: (_) => setState(() {}),
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. 10',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'PROFESSIONAL BIO',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _bioController,
+                        onChanged: (_) => setState(() {}),
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Describe your expertise and major projects completed...',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          contentPadding: const EdgeInsets.all(16),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 4. Social Links Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.share_outlined, color: Color(0xFF0284C7), size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Social Links',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'WHATSAPP NUMBER',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _whatsappController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: '+91 98765 43210',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.chat_bubble_outline, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'INSTAGRAM PROFILE',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _instagramController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: '@username',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.camera_alt_outlined, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'FACEBOOK PROFILE',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _facebookController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'facebook.com/profile',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.public_outlined, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'WEBSITE URL',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _websiteController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'www.yourwebsite.com',
+                          fillColor: const Color(0xFFF8FAFC),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.language_outlined, size: 18),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          enabledBorder: inputBorder,
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 5. Document Upload Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.upload_file_outlined, color: Color(0xFF0284C7), size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Document Upload',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // PAN Card upload row
+                      _buildMockupUploadRow(
+                        title: 'PAN Card',
+                        formatInfo: 'FORMAT: JPG, PDF (MAX 2MB)',
+                        status: _panStatus,
+                        onUploadTap: () {
+                          setState(() {
+                            _panStatus = _panStatus == 'PENDING' ? 'VERIFIED' : 'PENDING';
+                          });
+                        },
+                      ),
+                      const Divider(height: 32, color: Color(0xFFF1F5F9)),
+
+                      // GST upload row
+                      _buildMockupUploadRow(
+                        title: 'GST Certificate (Optional)',
+                        formatInfo: 'FORMAT: PDF (MAX 5MB)',
+                        status: _gstStatus,
+                        onUploadTap: () {
+                          setState(() {
+                            _gstStatus = _gstStatus == 'OPTIONAL' ? 'VERIFIED' : 'OPTIONAL';
+                          });
+                        },
+                      ),
+                      const Divider(height: 32, color: Color(0xFFF1F5F9)),
+
+                      // Aadhaar upload row
+                      _buildMockupUploadRow(
+                        title: 'Aadhaar Card (Front & Back)',
+                        formatInfo: 'FORMAT: JPG, PDF (MAX 2MB)',
+                        status: _aadhaarStatus,
+                        onUploadTap: () {
+                          setState(() {
+                            _aadhaarStatus = _aadhaarStatus == 'PENDING' ? 'VERIFIED' : 'PENDING';
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 6. Submit Button
+                SizedBox(
+                  height: 54,
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton.icon(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0369A1), // Royal Blue
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          icon: const Icon(Icons.verified_user_outlined, size: 20),
+                          label: const Text(
+                            'Submit for Verification',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'BY SUBMITTING, YOU AGREE TO OUR VERIFICATION TERMS & CONDITIONS.',
+                  style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+
+                // 7. Why Verify Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'WHY VERIFY?',
+                        style: TextStyle(fontWeight: FontWeight.black, color: Color(0xFF0369A1), fontSize: 13, letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildCheckBullet('Priority listing in "Top Professionals" section'),
+                      const SizedBox(height: 12),
+                      _buildCheckBullet('Eligible for high-budget commercial projects'),
+                      const SizedBox(height: 12),
+                      _buildCheckBullet('Direct "Book Now" feature enabled on profile'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 8. Need Assistance Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'NEED ASSISTANCE?',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 12, letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Our onboarding team is available 24/7 to help you with documentation.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.4),
+                      ),
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Starting chat support...')),
+                          );
+                        },
+                        icon: const Icon(Icons.headset_mic_outlined, size: 16),
+                        label: const Text('Chat with Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0369A1),
+                          side: const BorderSide(color: Color(0xFF0369A1), width: 1.2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 36),
+          ),
 
-            SizedBox(
-              height: 52,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0284C7),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          // 9. Premium Floating Sticky Footer Overlay Visibility Badge
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, -4),
+                  )
+                ],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: const Color(0xFFF1F5F9),
+                      child: ClipOval(
+                        child: _profilePhotoUrl != null
+                            ? Image.network(_profilePhotoUrl!, width: 44, height: 44, fit: BoxFit.cover)
+                            : const Icon(Icons.person, color: Color(0xFF64748B)),
                       ),
-                      child: const Text('Submit Profile Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Verification in Progress',
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 14),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'PROFILE VISIBILITY: ${_calculateVisibility()}%',
+                            style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0284C7), fontSize: 11, letterSpacing: 0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildUploadButton(String label) {
-    return OutlinedButton.icon(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label uploaded successfully (Demo Verification!)')),
-        );
-      },
-      icon: const Icon(Icons.cloud_upload_outlined, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 11)),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF475569),
-        side: const BorderSide(color: Color(0xFFCBD5E1)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-      ),
+  Widget _buildCheckBullet(String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 18),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: Color(0xFF475569), fontSize: 13, height: 1.3, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMockupUploadRow({
+    required String title,
+    required String formatInfo,
+    required String status,
+    required VoidCallback onUploadTap,
+  }) {
+    Color statusColor = const Color(0xFF94A3B8);
+    Color statusBg = const Color(0xFFF1F5F9);
+    if (status == 'VERIFIED') {
+      statusColor = const Color(0xFF10B981);
+      statusBg = const Color(0xFFD1FAE5);
+    } else if (status == 'OPTIONAL') {
+      statusColor = const Color(0xFF64748B);
+      statusBg = const Color(0xFFF1F5F9);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.credit_card_outlined, color: Color(0xFF3B82F6), size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    formatInfo,
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: statusBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              height: 32,
+              child: ElevatedButton(
+                onPressed: onUploadTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0284C7),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                child: Text(status == 'VERIFIED' ? 'Change' : 'Upload', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

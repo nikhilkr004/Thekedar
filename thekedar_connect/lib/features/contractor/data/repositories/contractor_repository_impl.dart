@@ -32,15 +32,29 @@ class ContractorRepositoryImpl implements ContractorRepository {
     try {
       final res = await _supabase
           .from('contractors')
-          .select('business_name, years_experience, bio, categories')
+          .select(
+            'business_name, years_experience, bio, categories, social_links, '
+            'aadhaar_verified, pan_verified, gst_verified, '
+            'users:user_id (full_name, phone, address)',
+          )
           .eq('user_id', _userId)
           .maybeSingle();
       if (res == null) return null;
+
+      final userData = res['users'] as Map<String, dynamic>? ?? {};
+
       return ContractorProfile(
+        fullName: userData['full_name'] ?? '',
+        phone: userData['phone'] ?? '',
+        address: userData['address'] ?? '',
         businessName: res['business_name'] ?? '',
         yearsExperience: (res['years_experience'] ?? 0) as int,
         bio: res['bio'] ?? '',
         categories: (res['categories'] as List?)?.cast<String>() ?? [],
+        socialLinks: res['social_links'] as Map<String, dynamic>? ?? {},
+        aadhaarVerified: res['aadhaar_verified'] as bool? ?? false,
+        panVerified: res['pan_verified'] as bool? ?? false,
+        gstVerified: res['gst_verified'] as bool? ?? false,
       );
     } catch (_) {
       return null;
