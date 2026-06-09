@@ -61,7 +61,7 @@ export default function Sidebar() {
           const isAllowed = hasPermission(userRole, item.module, 'view');
           if (!isAllowed) return null;
 
-          const isActive = pathname === item.href;
+          const isActive = pathname.replace(/\/$/, '') === item.href.replace(/\/$/, '');
           const Icon = item.icon;
 
           return (
