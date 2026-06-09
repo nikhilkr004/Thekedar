@@ -368,7 +368,7 @@ class _ContractorProfileDetailsScreenState extends State<ContractorProfileDetail
             ),
             const SizedBox(height: 12),
 
-            // 6. Completed Work Showcase Gallery (Mock for high-end feel)
+            // 6. Work Gallery
             Container(
               color: Colors.white,
               width: double.infinity,
@@ -377,33 +377,98 @@ class _ContractorProfileDetailsScreenState extends State<ContractorProfileDetail
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Recent Completed Projects',
+                    'Work Showcase & Portfolio',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    height: 140,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        _buildPortfolioCard(
-                          'Interior Painting',
-                          '3 BHK Flat paint finished in Najafgarh.',
-                          'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop',
-                        ),
-                        _buildPortfolioCard(
-                          'Living Room Electricals',
-                          'Full wire layouts and smart lighting setup.',
-                          'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=300&auto=format&fit=crop',
-                        ),
-                        _buildPortfolioCard(
-                          'Bathroom Plumbing',
-                          'Premium CP fittings installation and drainage work.',
-                          'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=300&auto=format&fit=crop',
-                        ),
-                      ],
+                  if (widget.quote['portfolio_photo_urls'] != null &&
+                      widget.quote['portfolio_photo_urls'] is List &&
+                      (widget.quote['portfolio_photo_urls'] as List).isNotEmpty)
+                    SizedBox(
+                      height: 160,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: (widget.quote['portfolio_photo_urls'] as List).length,
+                        itemBuilder: (context, index) {
+                          final imageUrl = (widget.quote['portfolio_photo_urls'] as List)[index].toString();
+                          return GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: Stack(
+                                    alignment: Alignment.topRight,
+                                    children: [
+                                      InteractiveViewer(
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: Image.network(imageUrl, fit: BoxFit.contain),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 200,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: const Color(0xFFF1F5F9),
+                                    child: const Icon(Icons.broken_image_outlined, color: Colors.slate),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  else ...[
+                    const Text(
+                      'No specific images uploaded for this bid. Showing references:',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 140,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _buildPortfolioCard(
+                            'Interior Painting Reference',
+                            'Standard 3 BHK flat paint finishing reference.',
+                            'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop',
+                          ),
+                          _buildPortfolioCard(
+                            'Living Room Reference',
+                            'Standard lighting layout and smart home electrical reference.',
+                            'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=300&auto=format&fit=crop',
+                          ),
+                          _buildPortfolioCard(
+                            'Bathroom Plumbing Reference',
+                            'Premium CP fittings installation and drainage work.',
+                            'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=300&auto=format&fit=crop',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
