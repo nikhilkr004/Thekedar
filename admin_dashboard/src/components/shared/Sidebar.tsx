@@ -47,8 +47,8 @@ export default function Sidebar() {
     <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-200 flex flex-col h-screen fixed left-0 top-0">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-slate-800 gap-3 bg-slate-950">
-        <div className="bg-sky-500 p-2 rounded-lg text-white">
-          <ShieldCheck className="w-5 h-5" />
+        <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-800 bg-white">
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
         </div>
         <div>
           <h1 className="font-bold text-sm tracking-wide text-white uppercase">Thekedar Connect</h1>
