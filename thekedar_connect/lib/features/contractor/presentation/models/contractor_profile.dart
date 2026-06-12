@@ -15,6 +15,7 @@ class ContractorProfile {
   final String? gstDocUrl;
   final List<String> portfolioUrls;
   final int projectsCompleted;
+  final String status;
 
   ContractorProfile({
     required this.fullName,
@@ -33,5 +34,6 @@ class ContractorProfile {
     this.gstDocUrl,
     required this.portfolioUrls,
     this.projectsCompleted = 0,
+    this.status = 'DRAFT',
   });
 }

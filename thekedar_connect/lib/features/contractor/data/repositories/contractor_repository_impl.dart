@@ -36,7 +36,7 @@ class ContractorRepositoryImpl implements ContractorRepository {
             'business_name, years_experience, bio, categories, social_links, '
             'aadhaar_verified, pan_verified, gst_verified, '
             'aadhaar_doc_url, pan_doc_url, gst_doc_url, portfolio_urls, '
-            'projects_completed, '
+            'projects_completed, status, '
             'users:user_id (full_name, phone, address)',
           )
           .eq('user_id', _userId)
@@ -62,6 +62,7 @@ class ContractorRepositoryImpl implements ContractorRepository {
         gstDocUrl: res['gst_doc_url'] as String?,
         portfolioUrls: (res['portfolio_urls'] as List?)?.cast<String>() ?? [],
         projectsCompleted: (res['projects_completed'] ?? 0) as int,
+        status: res['status'] ?? 'DRAFT',
       );
     } catch (_) {
       return null;
