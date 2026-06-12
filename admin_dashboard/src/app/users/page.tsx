@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/core/supabase';
 import { useAdminStore } from '@/core/store';
 import { hasPermission } from '@/core/rbac';
@@ -20,6 +21,7 @@ interface UserItem {
 }
 
 export default function UsersPage() {
+  const router = useRouter();
   const { user: currentAdmin } = useAdminStore();
   const adminRole = currentAdmin?.role || 'Support';
 
@@ -277,6 +279,14 @@ export default function UsersPage() {
 
             {/* Action buttons wrapper */}
             <div className="space-y-3 pt-6 border-t border-slate-100">
+              {selectedUser.role === 'contractor' && (
+                <button
+                  onClick={() => router.push(`/users/${selectedUser.id}`)}
+                  className="w-full bg-gradient-to-tr from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-2 shadow-sm mb-3"
+                >
+                  <ShieldAlert className="w-4 h-4" /> Review & Verify Profile
+                </button>
+              )}
               <button
                 onClick={() => toggleUserActive(selectedUser.id, selectedUser.is_active)}
                 className={`w-full py-2.5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border ${
