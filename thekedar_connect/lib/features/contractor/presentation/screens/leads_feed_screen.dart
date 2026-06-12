@@ -24,12 +24,16 @@ class LeadsFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final leadsAsync = ref.watch(
-      leadsProvider('Mason,Plumber,Electrician,Painter,Carpenter'),
-    );
     final profileAsync = ref.watch(contractorProfileProvider);
     final walletAsync = ref.watch(walletBalanceProvider);
     final bidsAsync = ref.watch(contractorBidsProvider);
+
+    final categoriesList = profileAsync.value?.categories ?? [];
+    final categoriesStr = categoriesList.isEmpty
+        ? 'Mason,Plumber,Electrician,Painter,Carpenter'
+        : categoriesList.join(',');
+
+    final leadsAsync = ref.watch(leadsProvider(categoriesStr));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F7FA), // Soft blue-grey background matching screenshot
@@ -110,7 +114,7 @@ class LeadsFeedScreen extends ConsumerWidget {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF0F172A), size: 24),
-                                  onPressed: () {},
+                                  onPressed: () => context.push('/notifications'),
                                 ),
                                 Positioned(
                                   top: 12,
