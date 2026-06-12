@@ -10,6 +10,11 @@ class ContractorProfile {
   final bool aadhaarVerified;
   final bool panVerified;
   final bool gstVerified;
+  final String? aadhaarDocUrl;
+  final String? panDocUrl;
+  final String? gstDocUrl;
+  final List<String> portfolioUrls;
+  final int projectsCompleted;
 
   ContractorProfile({
     required this.fullName,
@@ -23,5 +28,10 @@ class ContractorProfile {
     required this.aadhaarVerified,
     required this.panVerified,
     required this.gstVerified,
+    this.aadhaarDocUrl,
+    this.panDocUrl,
+    this.gstDocUrl,
+    required this.portfolioUrls,
+    this.projectsCompleted = 0,
   });
 }

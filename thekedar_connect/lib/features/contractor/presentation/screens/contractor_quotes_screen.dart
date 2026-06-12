@@ -180,7 +180,7 @@ class _ContractorQuotesScreenState extends ConsumerState<ContractorQuotesScreen>
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.01),
+                            color: Colors.black.withValues(alpha: 0.01),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -266,13 +266,14 @@ class _ContractorQuotesScreenState extends ConsumerState<ContractorQuotesScreen>
                                 const SizedBox(height: 14),
                                 SizedBox(
                                   width: double.infinity,
-                                  height: 38,
+                                  height: 42,
                                   child: ElevatedButton.icon(
                                     onPressed: () => context.push('/chat', extra: project['id']),
                                     icon: const Icon(Icons.chat_bubble_outline, size: 14, color: Colors.white),
-                                    label: const Text('Open Chat Room', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                    label: const Text('Open Chat Room', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF0284C7),
+                                      padding: EdgeInsets.zero,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                     ),

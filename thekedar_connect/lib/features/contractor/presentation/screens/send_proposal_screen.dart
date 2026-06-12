@@ -179,7 +179,7 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0284C7).withOpacity(0.15),
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -188,7 +188,7 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
                         radius: 18,
                         child: const Icon(Icons.star, color: Colors.white, size: 18),
                       ),
@@ -203,7 +203,7 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
                             ),
                             Text(
                               isPremium ? 'Priority access for top-rated partners' : 'Direct access to verified customer requirements',
-                              style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.9)),
+                              style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.9)),
                             ),
                           ],
                         ),
@@ -356,7 +356,7 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
+                                          color: Colors.black.withValues(alpha: 0.5),
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
@@ -390,7 +390,7 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.01),
+                        color: Colors.black.withValues(alpha: 0.01),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -534,7 +534,7 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

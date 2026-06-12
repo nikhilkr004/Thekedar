@@ -205,7 +205,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF025CAB).withOpacity(0.25),
+                            color: const Color(0xFF025CAB).withValues(alpha: 0.25),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -248,7 +248,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 10),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.12),
+                                    color: Colors.white.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Column(
@@ -271,7 +271,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 10),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.12),
+                                    color: Colors.white.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Column(
@@ -450,6 +450,34 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error loading wallet: $e')),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 3, // Highlight Profile/Wallet tab
+        selectedItemColor: const Color(0xFF0284C7),
+        unselectedItemColor: const Color(0xFF64748B),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+          BottomNavigationBarItem(icon: Icon(Icons.request_quote), label: 'Quotes'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              context.go('/leads');
+              break;
+            case 1:
+              context.go('/contractor_quotes');
+              break;
+            case 2:
+              context.go('/chat_list');
+              break;
+            case 3:
+              context.go('/profile_setup');
+              break;
+          }
+        },
+      ),
     );
   }
 
@@ -460,13 +488,13 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: hasBestValueBadge ? const Color(0xFF025CAB).withOpacity(0.15) : const Color(0xFFF1F5F9),
+          color: hasBestValueBadge ? const Color(0xFF025CAB).withValues(alpha: 0.15) : const Color(0xFFF1F5F9),
           width: hasBestValueBadge ? 2 : 1.5,
         ),
         boxShadow: hasBestValueBadge
             ? [
                 BoxShadow(
-                  color: const Color(0xFF025CAB).withOpacity(0.04),
+                  color: const Color(0xFF025CAB).withValues(alpha: 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
@@ -477,7 +505,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         borderRadius: BorderRadius.circular(19),
         child: Container(
           decoration: BoxDecoration(
-            color: hasBestValueBadge ? const Color(0xFF025CAB).withOpacity(0.02) : Colors.white,
+            color: hasBestValueBadge ? const Color(0xFF025CAB).withValues(alpha: 0.02) : Colors.white,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(

@@ -49,6 +49,8 @@ dependencies:
   url_launcher: ^6.3.1
   firebase_core: ^4.10.0
   firebase_messaging: ^16.3.0
+  image: ^4.8.0
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_test:
