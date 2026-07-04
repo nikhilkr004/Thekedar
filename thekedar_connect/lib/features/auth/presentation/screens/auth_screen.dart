@@ -17,13 +17,30 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   String _authMethod = 'phone'; // 'phone' or 'email'
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _otpController = TextEditingController();
+  
+  // 4-digit OTP individual controllers and focus nodes
+  final _otp1Controller = TextEditingController();
+  final _otp2Controller = TextEditingController();
+  final _otp3Controller = TextEditingController();
+  final _otp4Controller = TextEditingController();
+
+  final _otp1FocusNode = FocusNode();
+  final _otp2FocusNode = FocusNode();
+  final _otp3FocusNode = FocusNode();
+  final _otp4FocusNode = FocusNode();
 
   @override
   void dispose() {
     _phoneController.dispose();
     _emailController.dispose();
-    _otpController.dispose();
+    _otp1Controller.dispose();
+    _otp2Controller.dispose();
+    _otp3Controller.dispose();
+    _otp4Controller.dispose();
+    _otp1FocusNode.dispose();
+    _otp2FocusNode.dispose();
+    _otp3FocusNode.dispose();
+    _otp4FocusNode.dispose();
     super.dispose();
   }
 
@@ -72,10 +89,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final identifier = _authMethod == 'email' 
         ? _emailController.text.trim()
         : _phoneController.text.trim();
-    final code = _otpController.text.trim();
-    if (code.isEmpty) {
+        
+    final code = _otp1Controller.text.trim() +
+        _otp2Controller.text.trim() +
+        _otp3Controller.text.trim() +
+        _otp4Controller.text.trim();
+
+    if (code.length < 4) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the verification code')),
+        const SnackBar(content: Text('Please enter the full 4-digit code')),
       );
       return;
     }
@@ -146,6 +168,46 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Widget _buildOtpBox(
+    TextEditingController controller,
+    FocusNode currentNode,
+    FocusNode? nextNode,
+    FocusNode? prevNode,
+  ) {
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: TextField(
+        controller: controller,
+        focusNode: currentNode,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        maxLength: 1,
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        decoration: InputDecoration(
+          counterText: '',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: EdgeInsets.zero,
+        ),
+        onChanged: (value) {
+          if (value.isNotEmpty) {
+            if (nextNode != null) {
+              FocusScope.of(context).requestFocus(nextNode);
+            } else {
+              currentNode.unfocus();
+            }
+          } else {
+            if (prevNode != null) {
+              FocusScope.of(context).requestFocus(prevNode);
+            }
+          }
+        },
+      ),
+    );
   }
 
   @override
@@ -293,19 +355,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   const SizedBox(height: 16),
                   
                   if (_otpSent) ...[
-                    TextField(
-                      controller: _otpController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Verification Code',
-                        hintText: 'Enter 6-digit OTP',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                    const Text(
+                      'Enter 4-Digit Verification Code',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildOtpBox(_otp1Controller, _otp1FocusNode, _otp2FocusNode, null),
+                        _buildOtpBox(_otp2Controller, _otp2FocusNode, _otp3FocusNode, _otp1FocusNode),
+                        _buildOtpBox(_otp3Controller, _otp3FocusNode, _otp4FocusNode, _otp2FocusNode),
+                        _buildOtpBox(_otp4Controller, _otp4FocusNode, null, _otp3FocusNode),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _verifyOtp,
                       style: ElevatedButton.styleFrom(
