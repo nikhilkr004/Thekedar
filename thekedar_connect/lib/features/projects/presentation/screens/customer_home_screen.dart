@@ -507,6 +507,13 @@ class CustomerHomeScreen extends ConsumerWidget {
   }
 
   Widget _buildExpertCard(String name, String role, String exp, double rating) {
+    String imagePath = '';
+    if (name.contains('Rajesh')) {
+      imagePath = 'assets/images/expert_rajesh.png';
+    } else if (name.contains('Amit')) {
+      imagePath = 'assets/images/expert_amit.png';
+    }
+
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16, bottom: 8),
@@ -524,7 +531,9 @@ class CustomerHomeScreen extends ConsumerWidget {
               height: 120,
               width: double.infinity,
               color: Colors.grey.shade100,
-              child: const Icon(Icons.person, size: 50, color: Colors.grey),
+              child: imagePath.isNotEmpty
+                  ? Image.asset(imagePath, fit: BoxFit.cover)
+                  : const Icon(Icons.person, size: 50, color: Colors.grey),
             ),
           ),
           Padding(

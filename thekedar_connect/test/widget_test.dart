@@ -1,29 +1,68 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:thekedar_connect/main.dart';
+import 'package:thekedar_connect/features/contractor/presentation/models/contractor_profile.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: ThekedarConnectApp()));
+  group('ContractorProfile Unit Tests', () {
+    test('Verify ContractorProfile initializes correctly with required values', () {
+      final profile = ContractorProfile(
+        fullName: 'Nikhil Kumar',
+        phone: '+919999999999',
+        address: 'Patna, Bihar',
+        businessName: 'Nikhil Constructions',
+        yearsExperience: 8,
+        bio: 'Civil contractor with 8 years experience.',
+        categories: ['Mason', 'Painter'],
+        socialLinks: {'facebook': 'https://facebook.com/nikhil'},
+        aadhaarVerified: true,
+        panVerified: false,
+        gstVerified: false,
+        portfolioUrls: ['https://example.com/p1.jpg'],
+      );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(profile.fullName, 'Nikhil Kumar');
+      expect(profile.phone, '+919999999999');
+      expect(profile.address, 'Patna, Bihar');
+      expect(profile.businessName, 'Nikhil Constructions');
+      expect(profile.yearsExperience, 8);
+      expect(profile.bio, 'Civil contractor with 8 years experience.');
+      expect(profile.categories, ['Mason', 'Painter']);
+      expect(profile.socialLinks['facebook'], 'https://facebook.com/nikhil');
+      expect(profile.aadhaarVerified, isTrue);
+      expect(profile.panVerified, isFalse);
+      expect(profile.gstVerified, isFalse);
+      expect(profile.portfolioUrls, ['https://example.com/p1.jpg']);
+      
+      // Defaults
+      expect(profile.projectsCompleted, 0);
+      expect(profile.status, 'DRAFT');
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('Verify custom optional values are initialized', () {
+      final profile = ContractorProfile(
+        fullName: 'Rajesh Kumar',
+        phone: '+918888888888',
+        address: 'Ranchi, Jharkhand',
+        businessName: 'Rajesh Electricals',
+        yearsExperience: 12,
+        bio: 'Electrical contractor.',
+        categories: ['Electrician'],
+        socialLinks: {},
+        aadhaarVerified: true,
+        panVerified: true,
+        gstVerified: true,
+        aadhaarDocUrl: 'https://example.com/aadhaar.pdf',
+        panDocUrl: 'https://example.com/pan.pdf',
+        gstDocUrl: 'https://example.com/gst.pdf',
+        portfolioUrls: [],
+        projectsCompleted: 25,
+        status: 'APPROVED',
+      );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      expect(profile.aadhaarDocUrl, 'https://example.com/aadhaar.pdf');
+      expect(profile.panDocUrl, 'https://example.com/pan.pdf');
+      expect(profile.gstDocUrl, 'https://example.com/gst.pdf');
+      expect(profile.projectsCompleted, 25);
+      expect(profile.status, 'APPROVED');
+    });
   });
 }

@@ -374,8 +374,8 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
                       : ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            _buildMockPhotoCard('Architectural Frame', 'assets/mock1.jpg'),
-                            _buildMockPhotoCard('Internal Layout', 'assets/mock2.jpg'),
+                            _buildMockPhotoCard('Architectural Frame', 'assets/images/mock1.png'),
+                            _buildMockPhotoCard('Internal Layout', 'assets/images/mock2.png'),
                           ],
                         ),
                 ),
