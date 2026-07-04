@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,6 +30,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _otp3FocusNode = FocusNode();
   final _otp4FocusNode = FocusNode();
 
+  // Resend Countdown Timer State
+  int _resendCountdown = 0;
+  Timer? _timer;
+
   @override
   void dispose() {
     _phoneController.dispose();
@@ -41,7 +46,26 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _otp2FocusNode.dispose();
     _otp3FocusNode.dispose();
     _otp4FocusNode.dispose();
+    _timer?.cancel();
     super.dispose();
+  }
+
+  void _startTimer() {
+    setState(() {
+      _resendCountdown = 30; // 30 seconds limit
+    });
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendCountdown == 0) {
+        setState(() {
+          _timer?.cancel();
+        });
+      } else {
+        setState(() {
+          _resendCountdown--;
+        });
+      }
+    });
   }
 
   Future<void> _sendOtp() async {
@@ -69,6 +93,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       setState(() {
         _otpSent = true;
       });
+      _startTimer();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Verification code sent!')),
@@ -370,7 +395,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         _buildOtpBox(_otp4Controller, _otp4FocusNode, null, _otp3FocusNode),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    // Timer & Resend Option row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_resendCountdown > 0)
+                          Text(
+                            'Resend code in $_resendCountdown seconds',
+                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+                          )
+                        else
+                          TextButton(
+                            onPressed: _sendOtp,
+                            child: const Text(
+                              'Resend Code',
+                              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _verifyOtp,
                       style: ElevatedButton.styleFrom(
