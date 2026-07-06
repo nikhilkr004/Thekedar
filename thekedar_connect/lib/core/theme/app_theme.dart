@@ -39,24 +39,24 @@ class AppTheme {
         error: AppColors.error,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onSurface: AppColors.darkTextPrimary,
+        onSurface: AppColors.textPrimary,
         onError: Colors.white,
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: AppTypography.h1.copyWith(color: AppColors.darkTextPrimary),
-        displayMedium: AppTypography.h2.copyWith(color: AppColors.darkTextPrimary),
-        displaySmall: AppTypography.h3.copyWith(color: AppColors.darkTextPrimary),
-        bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.darkTextSecondary),
-        bodyMedium: AppTypography.bodyMedium.copyWith(color: AppColors.darkTextSecondary),
-        labelLarge: AppTypography.buttonText.copyWith(color: AppColors.darkTextPrimary),
-        bodySmall: AppTypography.caption.copyWith(color: AppColors.darkMuted),
+        displayLarge: AppTypography.display.copyWith(color: AppColors.textPrimary),
+        displayMedium: AppTypography.headline.copyWith(color: AppColors.textPrimary),
+        displaySmall: AppTypography.title.copyWith(color: AppColors.textPrimary),
+        bodyLarge: AppTypography.body.copyWith(color: AppColors.textSecondary),
+        bodyMedium: AppTypography.smallBody.copyWith(color: AppColors.textSecondary),
+        labelLarge: AppTypography.button.copyWith(color: AppColors.textPrimary),
+        bodySmall: AppTypography.caption.copyWith(color: AppColors.textMuted),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkSurface,
-        foregroundColor: AppColors.darkTextPrimary,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTypography.h3.copyWith(color: AppColors.darkTextPrimary),
+        titleTextStyle: AppTypography.title.copyWith(color: AppColors.textPrimary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -70,7 +70,7 @@ class AppTheme {
             vertical: AppSpacing.md,
             horizontal: AppSpacing.lg,
           ),
-          textStyle: AppTypography.buttonText,
+          textStyle: AppTypography.button,
         ),
       ),
       cardTheme: CardThemeData(
@@ -83,7 +83,7 @@ class AppTheme {
         elevation: AppElevation.card,
         margin: const EdgeInsets.all(AppSpacing.sm),
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: DialogTheme(
         backgroundColor: AppColors.darkDialog,
         elevation: AppElevation.dialog,
         shape: RoundedRectangleBorder(
@@ -130,12 +130,12 @@ class AppTheme {
         onError: Colors.white,
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: AppTypography.h1.copyWith(color: AppColors.lightTextPrimary),
-        displayMedium: AppTypography.h2.copyWith(color: AppColors.lightTextPrimary),
-        displaySmall: AppTypography.h3.copyWith(color: AppColors.lightTextPrimary),
-        bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.lightTextSecondary),
-        bodyMedium: AppTypography.bodyMedium.copyWith(color: AppColors.lightTextSecondary),
-        labelLarge: AppTypography.buttonText.copyWith(color: AppColors.lightTextPrimary),
+        displayLarge: AppTypography.display.copyWith(color: AppColors.lightTextPrimary),
+        displayMedium: AppTypography.headline.copyWith(color: AppColors.lightTextPrimary),
+        displaySmall: AppTypography.title.copyWith(color: AppColors.lightTextPrimary),
+        bodyLarge: AppTypography.body.copyWith(color: AppColors.lightTextSecondary),
+        bodyMedium: AppTypography.smallBody.copyWith(color: AppColors.lightTextSecondary),
+        labelLarge: AppTypography.button.copyWith(color: AppColors.lightTextPrimary),
         bodySmall: AppTypography.caption.copyWith(color: AppColors.lightTextSecondary),
       ),
       appBarTheme: AppBarTheme(
@@ -143,7 +143,7 @@ class AppTheme {
         foregroundColor: AppColors.lightTextPrimary,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTypography.h3.copyWith(color: AppColors.lightTextPrimary),
+        titleTextStyle: AppTypography.title.copyWith(color: AppColors.lightTextPrimary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -157,7 +157,7 @@ class AppTheme {
             vertical: AppSpacing.md,
             horizontal: AppSpacing.lg,
           ),
-          textStyle: AppTypography.buttonText,
+          textStyle: AppTypography.button,
         ),
       ),
       cardTheme: CardThemeData(
@@ -205,7 +205,7 @@ class AppTheme {
     try {
       final brandHex = (tokens['brand_color'] ?? '#5B5FEF').toString().replaceAll('#', '0xFF');
       final accentHex = (tokens['accent_color'] ?? '#8B5CF6').toString().replaceAll('#', '0xFF');
-      final radius = double.tryParse((tokens['corner_radius'] ?? '12.0').toString()) ?? 12.0;
+      final radius = double.tryParse((tokens['corner_radius'] ?? '16.0').toString()) ?? 16.0;
 
       final Color brandColor = Color(int.parse(brandHex));
       final Color accentColor = Color(int.parse(accentHex));
