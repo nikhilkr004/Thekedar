@@ -91,7 +91,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Build Your Dream\nProject Today',
+                            'Build Your Dream Project Today',
                             style: AppTypography.display.copyWith(
                               color: Colors.white,
                               height: 1.2,
@@ -99,7 +99,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
-                            'Connect with India\'s most trusted\ncontractors and specialists.',
+                            'Connect with India\'s most trusted contractors and specialists.',
                             style: AppTypography.body.copyWith(
                               color: AppColors.textSecondary,
                               height: 1.4,
@@ -174,7 +174,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                     crossAxisCount: isLargeScreen ? 4 : 2,
                     crossAxisSpacing: AppSpacing.lg,
                     mainAxisSpacing: AppSpacing.lg,
-                    childAspectRatio: 1.3,
+                    childAspectRatio: isLargeScreen ? 1.6 : 1.3,
                     children: [
                       _buildServiceCard('Plumber', Icons.plumbing),
                       _buildServiceCard('Electrician', Icons.electrical_services),
@@ -342,7 +342,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                 ),
                 
                 SizedBox(
-                  height: 140,
+                  height: 165,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.only(left: AppSpacing.lg),
@@ -375,7 +375,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                     crossAxisCount: isLargeScreen ? 4 : 2,
                     crossAxisSpacing: AppSpacing.lg,
                     mainAxisSpacing: AppSpacing.lg,
-                    childAspectRatio: 1.4,
+                    childAspectRatio: isLargeScreen ? 1.6 : 1.4,
                     children: [
                       _buildFeatureItem(AppIcons.verify, 'Background\nChecked', AppColors.success),
                       _buildFeatureItem(Icons.payments_outlined, 'Upfront Pricing', AppColors.electricBlue),
@@ -925,7 +925,7 @@ class CustomerHomeScreen extends ConsumerWidget {
 
   Widget _buildStoryCard(String quote, String author) {
     return Container(
-      width: 240,
+      width: 270,
       margin: const EdgeInsets.only(right: AppSpacing.lg, bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -950,10 +950,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                 fontStyle: FontStyle.italic,
                 color: AppColors.textSecondary,
               ),
-              maxLines: 2,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             '— $author',
             style: AppTypography.caption.copyWith(
