@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/theme/design_system.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -12,8 +13,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<Map<String, dynamic>> _receipts = [];
-  String _activeTab = 'all'; // 'all' | 'unread' | 'read'
-  String _typeFilter = 'all'; // 'all' | 'attendance' | 'leave' | 'payroll' | 'site' | 'system'
+  String _activeTab = 'all';
+  String _typeFilter = 'all';
 
   final List<String> _filters = ['all', 'attendance', 'leave', 'payroll', 'site', 'system'];
 
@@ -24,7 +25,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     _subscribeToRealtimeNotifications();
   }
 
-  // Fetch receipts joined with notifications details
   Future<void> _fetchNotifications() async {
     setState(() => _isLoading = true);
     final user = _supabase.auth.currentUser;
@@ -49,7 +49,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
   }
 
-  // Subscribe to real-time notification recipient inserts
   void _subscribeToRealtimeNotifications() {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
@@ -66,7 +65,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             value: user.id,
           ),
           callback: (payload) async {
-            // Fetch the fully populated details for the new notification
             try {
               final newId = payload.newRecord['id'];
               final details = await _supabase
@@ -88,7 +86,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         .subscribe();
   }
 
-  // Mark single notification as read
   Future<void> _markAsRead(String receiptId) async {
     try {
       await _supabase
@@ -113,7 +110,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
   }
 
-  // Mark all notifications as read
   Future<void> _markAllAsRead() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
@@ -145,7 +141,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
   }
 
-  // Delete notification receipt
   Future<void> _deleteNotification(String receiptId) async {
     try {
       await _supabase.from('notification_recipients').delete().eq('id', receiptId);
@@ -164,18 +159,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
   }
 
-  // Filter receipts locally based on tabs & dropdowns
   List<Map<String, dynamic>> _getFilteredReceipts() {
     return _receipts.where((r) {
       final notification = r['notifications'] as Map<String, dynamic>?;
       if (notification == null) return false;
 
-      // Status Filter
       final isRead = r['is_read'] == true;
       if (_activeTab == 'unread' && isRead) return false;
       if (_activeTab == 'read' && !isRead) return false;
 
-      // Type Category Filter
       final type = (notification['notification_type'] ?? 'system').toString().toLowerCase();
       if (_typeFilter != 'all' && type != _typeFilter) return false;
 
@@ -186,98 +178,109 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredList = _getFilteredReceipts();
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        title: const Text(
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
           'Notification Center',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.done_all, color: Color(0xFF0284C7)),
+            icon: const Icon(Icons.done_all, color: AppColors.primaryLight),
             tooltip: 'Mark all as read',
             onPressed: _markAllAsRead,
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 1. Status Filter Tabs (All, Unread, Read)
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildTabButton('All', 'all'),
-                _buildTabButton('Unread', 'unread'),
-                _buildTabButton('Read', 'read'),
-              ],
-            ),
-          ),
-          
-          // 2. Category Filters List
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: _filters.length,
-              itemBuilder: (context, index) {
-                final filterName = _filters[index];
-                final isSelected = _typeFilter == filterName;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _typeFilter = filterName;
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF0284C7) : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? const Color(0xFF0284C7) : const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        filterName.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : const Color(0xFF475569),
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 600 : double.infinity,
+          child: Column(
+            children: [
+              // 1. Status Filter Tabs
+              Container(
+                color: AppColors.darkSurface,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildTabButton('All', 'all'),
+                    _buildTabButton('Unread', 'unread'),
+                    _buildTabButton('Read', 'read'),
+                  ],
+                ),
+              ),
+              
+              // 2. Category Filters List
+              SizedBox(
+                height: 54,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                  itemCount: _filters.length,
+                  itemBuilder: (context, index) {
+                    final filterName = _filters[index];
+                    final isSelected = _typeFilter == filterName;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _typeFilter = filterName;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary : AppColors.darkCard,
+                          borderRadius: BorderRadius.circular(AppRadius.circular),
+                          border: Border.all(
+                            color: isSelected ? Colors.transparent : AppColors.darkBorder,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            filterName.toUpperCase(),
+                            style: AppTypography.caption.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+                    );
+                  },
+                ),
+              ),
 
-          // 3. Main Inbox Notification List
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredList.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filteredList.length,
-                        itemBuilder: (context, index) {
-                          final receipt = filteredList[index];
-                          return _buildNotificationCard(receipt);
-                        },
-                      ),
+              // 3. Main Inbox Notification List
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    : filteredList.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final receipt = filteredList[index];
+                              return _buildNotificationCard(receipt);
+                            },
+                          ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -295,10 +298,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: AppTypography.smallBody.copyWith(
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? const Color(0xFF0284C7) : const Color(0xFF64748B),
-              fontSize: 14,
+              color: isSelected ? AppColors.primaryLight : AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -306,8 +308,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             height: 2.5,
             width: 40,
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF0284C7) : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
+              color: isSelected ? AppColors.primaryLight : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadius.circular),
             ),
           )
         ],
@@ -325,34 +327,38 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final type = (notification['notification_type'] ?? 'system').toString().toLowerCase();
     final priority = (notification['priority'] ?? 'medium').toString().toLowerCase();
 
-    // Map priority colors
     Color priorityColor;
     if (priority == 'critical') {
-      priorityColor = const Color(0xFFEF4444);
+      priorityColor = AppColors.error;
     } else if (priority == 'high') {
-      priorityColor = const Color(0xFFF97316);
+      priorityColor = AppColors.warning;
     } else {
-      priorityColor = const Color(0xFF64748B);
+      priorityColor = AppColors.textMuted;
     }
 
-    // Map type icons
     IconData typeIcon;
     Color iconBgColor;
+    Color iconColor;
     if (type == 'attendance') {
       typeIcon = Icons.fingerprint;
-      iconBgColor = const Color(0xFFECFDF5);
+      iconBgColor = AppColors.success.withOpacity(0.12);
+      iconColor = AppColors.success;
     } else if (type == 'leave') {
       typeIcon = Icons.calendar_today;
-      iconBgColor = const Color(0xFFEFF6FF);
+      iconBgColor = AppColors.primary.withOpacity(0.12);
+      iconColor = AppColors.primaryLight;
     } else if (type == 'payroll') {
       typeIcon = Icons.account_balance_wallet;
-      iconBgColor = const Color(0xFFFDF2F8);
+      iconBgColor = AppColors.success.withOpacity(0.12);
+      iconColor = AppColors.success;
     } else if (type == 'site') {
       typeIcon = Icons.location_on;
-      iconBgColor = const Color(0xFFFFF7ED);
+      iconBgColor = AppColors.secondary.withOpacity(0.12);
+      iconColor = AppColors.secondary;
     } else {
       typeIcon = Icons.notifications_none;
-      iconBgColor = const Color(0xFFF1F5F9);
+      iconBgColor = AppColors.darkSurface;
+      iconColor = AppColors.textSecondary;
     }
 
     return Dismissible(
@@ -363,20 +369,27 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFFEF2F2),
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.error.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(AppRadius.large),
         ),
-        child: const Icon(Icons.delete_outline, color: Color(0xFFEF4444)),
+        child: const Icon(Icons.delete_outline, color: AppColors.error),
       ),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
         decoration: BoxDecoration(
-          color: isRead ? Colors.white : const Color(0xFFF0F9FF),
-          borderRadius: BorderRadius.circular(16),
+          color: isRead ? AppColors.darkCard : AppColors.darkCard.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           border: Border.all(
-            color: isRead ? const Color(0xFFE2E8F0) : const Color(0xFFBAE6FD),
+            color: isRead ? AppColors.darkBorder : AppColors.primary.withOpacity(0.4),
             width: 1,
           ),
+          boxShadow: isRead ? null : [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ],
         ),
         child: InkWell(
           onTap: () {
@@ -384,24 +397,22 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
               _markAsRead(receipt['id']);
             }
           },
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon column
                 Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
                     color: iconBgColor,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
-                  child: Icon(typeIcon, color: const Color(0xFF475569), size: 20),
+                  child: Icon(typeIcon, color: iconColor, size: 20),
                 ),
-                const SizedBox(width: 12),
-                // Text column
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,10 +422,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           Expanded(
                             child: Text(
                               title,
-                              style: TextStyle(
+                              style: AppTypography.smallBody.copyWith(
                                 fontWeight: isRead ? FontWeight.bold : FontWeight.w900,
-                                fontSize: 14,
-                                color: const Color(0xFF0F172A),
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -431,12 +441,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       const SizedBox(height: 4),
                       Text(
                         message,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.4),
+                        style: AppTypography.caption.copyWith(color: AppColors.textSecondary, height: 1.4),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         DateTime.parse(receipt['created_at'].toString()).toLocal().toString().split(' ')[0],
-                        style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold),
+                        style: AppTypography.caption.copyWith(color: AppColors.textMuted, fontWeight: FontWeight.bold),
                       )
                     ],
                   ),
@@ -454,16 +464,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey[300]),
+          const Icon(Icons.notifications_off_outlined, size: 48, color: AppColors.textMuted),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'All Caught Up!',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF64748B)),
+            style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'You have no notifications in this category.',
-            style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+            style: AppTypography.caption.copyWith(color: AppColors.textMuted),
           ),
         ],
       ),

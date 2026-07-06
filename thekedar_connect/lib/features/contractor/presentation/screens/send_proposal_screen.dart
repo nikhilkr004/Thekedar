@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/contractor_provider.dart';
+import '../../../../core/theme/design_system.dart';
 
 class SendProposalScreen extends ConsumerStatefulWidget {
   final String projectId;
@@ -50,7 +51,6 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
 
     setState(() => _isLoading = true);
     try {
-      // Submit proposal details
       await ref.read(contractorRepositoryProvider).submitProposal(
             projectId: widget.projectId,
             estimatedCostMin: budgetMin > 0 ? budgetMin : 12000,
@@ -80,422 +80,372 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final inputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
-    );
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Lead Details',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.notifications_none, color: AppColors.textPrimary),
             onPressed: () {},
           ),
           CircleAvatar(
             radius: 14,
-            backgroundColor: const Color(0xFFE2E8F0),
-            child: ClipOval(
-              child: Container(color: const Color(0xFF0284C7), width: 28, height: 28),
-            ),
+            backgroundColor: AppColors.primary.withOpacity(0.15),
+            child: const Icon(AppIcons.profile, size: 16, color: AppColors.primaryLight),
           ),
           const SizedBox(width: 16),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: Supabase.instance.client
-            .from('projects')
-            .select('*')
-            .eq('id', widget.projectId)
-            .single(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
-          }
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 600 : double.infinity,
+          child: FutureBuilder<Map<String, dynamic>>(
+            future: Supabase.instance.client
+                .from('projects')
+                .select('*')
+                .eq('id', widget.projectId)
+                .single(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.error)));
+              }
 
-          final project = snapshot.data ?? {};
-          final title = project['title'] ?? 'Luxury Construction Lead';
-          final category = project['category'] ?? 'General';
-          final city = project['city'] ?? 'Jaipur';
-          final desc = project['description'] ?? '';
-          final rawAddress = project['address_text'] ?? '';
-          final timeAgo = _getTimeAgo(project['created_at']);
-          final budgetMin = project['budget_min'] ?? 0;
-          final budgetMax = project['budget_max'] ?? 0;
+              final project = snapshot.data ?? {};
+              final title = project['title'] ?? 'Luxury Construction Lead';
+              final city = project['city'] ?? 'Jaipur';
+              final desc = project['description'] ?? '';
+              final rawAddress = project['address_text'] ?? '';
+              final timeAgo = _getTimeAgo(project['created_at']);
+              final budgetMin = project['budget_min'] ?? 0;
+              final budgetMax = project['budget_max'] ?? 0;
 
-          // Parse blueprint and photo URLs from description metadata
-          String? pdfUrl;
-          final pdfMatch = RegExp(r'\[Drawing PDF URL:\s*(https?://[^\s\]]+)').firstMatch(desc);
-          if (pdfMatch != null) {
-            pdfUrl = pdfMatch.group(1);
-          }
+              List<String> imageUrls = [];
+              final imagesMatch = RegExp(r'\[Land Image URLs:\s*([^\s\]]+(?:,\s*[^\s\]]+)*)\]').firstMatch(desc);
+              if (imagesMatch != null) {
+                final rawUrls = imagesMatch.group(1) ?? '';
+                imageUrls = rawUrls.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+              }
 
-          List<String> imageUrls = [];
-          final imagesMatch = RegExp(r'\[Land Image URLs:\s*([^\s\]]+(?:,\s*[^\s\]]+)*)\]').firstMatch(desc);
-          if (imagesMatch != null) {
-            final rawUrls = imagesMatch.group(1) ?? '';
-            imageUrls = rawUrls.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-          }
+              String cleanDesc = desc;
+              cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Plot Area:[^\]]+\]'), '');
+              cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Drawing Attachment:[^\]]+\]'), '');
+              cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Land Images:[^\]]+\]'), '');
+              cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Drawing PDF URL:[^\]]+\]'), '');
+              cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Land Image URLs:[^\]]+\]'), '');
+              cleanDesc = cleanDesc.trim();
+              if (cleanDesc.isEmpty) {
+                cleanDesc = 'Complete specification analysis for this premium project. Highly optimized space utilization and high-quality standard fitting requirements.';
+              }
 
-          // Clean description string
-          String cleanDesc = desc;
-          cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Plot Area:[^\]]+\]'), '');
-          cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Drawing Attachment:[^\]]+\]'), '');
-          cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Land Images:[^\]]+\]'), '');
-          cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Drawing PDF URL:[^\]]+\]'), '');
-          cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Land Image URLs:[^\]]+\]'), '');
-          cleanDesc = cleanDesc.trim();
-          if (cleanDesc.isEmpty) {
-            cleanDesc = 'Complete specification analysis for this premium project. Highly optimized space utilization and high-quality standard fitting requirements.';
-          }
+              final isPremium = budgetMax >= 50000;
 
-          final isPremium = budgetMax >= 50000;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. Premium Lead Blue Banner (Matches Right Screen Layout)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0284C7),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 1. Premium Lead Blue Banner
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary,
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        boxShadow: AppShadows.darkCardShadow,
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        radius: 18,
-                        child: const Icon(Icons.star, color: Colors.white, size: 18),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isPremium ? 'PREMIUM LEAD' : 'VERIFIED PARTNER LEAD',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
-                            ),
-                            Text(
-                              isPremium ? 'Priority access for top-rated partners' : 'Direct access to verified customer requirements',
-                              style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.9)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.check_circle, color: Color(0xFF0284C7), size: 12),
-                            SizedBox(width: 4),
-                            Text(
-                              'Verified',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Color(0xFF0284C7)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 2. Main Lead Specification Card
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Row(
                         children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            radius: 18,
+                            child: const Icon(Icons.star, color: Colors.white, size: 18),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
-                            child: Text(
-                              title,
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Time ago
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time, size: 14, color: Color(0xFF94A3B8)),
-                          const SizedBox(width: 6),
-                          Text(
-                            timeAgo,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Location & Map Link
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, size: 16, color: Color(0xFF0284C7)),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              rawAddress.startsWith('Lat:') ? 'Jagatpura, Jaipur (1.5 km away)' : '$city, India (3.2 km away)',
-                              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {},
-                            child: Row(
-                              children: const [
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  'View on Map',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                                  isPremium ? 'PREMIUM LEAD' : 'VERIFIED PARTNER LEAD',
+                                  style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                                 ),
-                                SizedBox(width: 3),
-                                Icon(Icons.open_in_new, size: 10, color: Color(0xFF0284C7)),
+                                Text(
+                                  isPremium ? 'Priority access for top-rated partners' : 'Direct access to verified customer requirements',
+                                  style: AppTypography.caption.copyWith(color: Colors.white.withOpacity(0.9)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(AppRadius.circular),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.check_circle, color: AppColors.secondary, size: 12),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Verified',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: AppColors.secondary),
+                                ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
 
-                      // Description
-                      const Text(
-                        'Description',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    // 2. Main Lead Specification Card
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.xxl),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkCard,
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        border: Border.all(color: AppColors.darkBorder),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        cleanDesc,
-                        style: const TextStyle(fontSize: 13, color: Color(0xFF475569), height: 1.5),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Specification tags wrap
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSpecTag('Tools Required'),
-                          _buildSpecTag('Site Visit Needed'),
-                          _buildSpecTag('Material Provided'),
-                          _buildSpecTag('Urgent Fix'),
+                          Text(
+                            title,
+                            style: AppTypography.subtitle.copyWith(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
+                              const SizedBox(width: 6),
+                              Text(
+                                timeAgo,
+                                style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, size: 16, color: AppColors.primaryLight),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  rawAddress.startsWith('Lat:') ? 'Jagatpura, Jaipur (1.5 km away)' : '$city, India (3.2 km away)',
+                                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Text(
+                            'Description',
+                            style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            cleanDesc,
+                            style: AppTypography.caption.copyWith(color: AppColors.textSecondary, height: 1.5),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildSpecTag('Tools Required'),
+                              _buildSpecTag('Site Visit Needed'),
+                              _buildSpecTag('Material Provided'),
+                              _buildSpecTag('Urgent Fix'),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
 
-                // 3. Site Photos & Blueprints Section (Horizontal Scrollview)
-                const Text(
-                  'Site Photos & Blueprints',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 160,
-                  child: imageUrls.isNotEmpty
-                      ? ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: imageUrls.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              width: 220,
-                              margin: const EdgeInsets.only(right: 14),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                    // 3. Site Photos
+                    Text(
+                      'Site Photos & Blueprints',
+                      style: AppTypography.subtitle.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: 160,
+                      child: imageUrls.isNotEmpty
+                          ? ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: imageUrls.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  width: 220,
+                                  margin: const EdgeInsets.only(right: 14),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.darkCard,
+                                    borderRadius: BorderRadius.circular(AppRadius.large),
+                                    border: Border.all(color: AppColors.darkBorder),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(AppRadius.large - 1.0),
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Image.network(imageUrls[index], fit: BoxFit.cover),
+                                        Positioned(
+                                          bottom: 10,
+                                          left: 10,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.5),
+                                              borderRadius: BorderRadius.circular(AppRadius.small),
+                                            ),
+                                            child: Text(
+                                              'Site Photo ${index + 1}.jpg',
+                                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                _buildMockPhotoCard('Architectural Frame'),
+                                _buildMockPhotoCard('Internal Layout'),
+                              ],
+                            ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // 4. Send Service Request Card
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.xxl),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkCard,
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        border: Border.all(color: AppColors.darkBorder),
+                        boxShadow: AppShadows.darkCardShadow,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(AppSpacing.sm),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(AppRadius.small),
+                                ),
+                                child: const Icon(Icons.mail_outline, color: AppColors.primaryLight, size: 20),
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(15),
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    Image.network(imageUrls[index], fit: BoxFit.cover),
-                                    Positioned(
-                                      bottom: 10,
-                                      left: 10,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.5),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          'Site Photo ${index + 1}.jpg',
-                                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                        ),
+                              const SizedBox(width: AppSpacing.md),
+                              Text(
+                                'Send Service Request',
+                                style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Text(
+                            'Estimated Completion Time',
+                            style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextField(
+                            controller: _timelineController,
+                            style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                            decoration: const InputDecoration(
+                              hintText: 'e.g., 15 Days',
+                              prefixIcon: Icon(Icons.timer_outlined, color: AppColors.iconNormal),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Text(
+                            'Proposal Note',
+                            style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextField(
+                            controller: _coverMessageController,
+                            maxLines: 5,
+                            style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                            decoration: const InputDecoration(
+                              hintText: 'I have 10+ years of experience in villa projects. We can ensure the highest safety standards...',
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          Text(
+                            'Your profile, including project history and experience, will be shared with the user.',
+                            style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: _isLoading
+                                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      gradient: AppGradients.primaryGradient,
+                                      borderRadius: AppRadius.buttonBorderRadius,
+                                    ),
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _submit(budgetMin, budgetMax),
+                                      icon: const Icon(Icons.send, size: 16, color: Colors.white),
+                                      label: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: const [
+                                          Text('Send Request ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                                          Icon(Icons.arrow_forward, size: 14, color: Colors.white),
+                                        ],
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorderRadius),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildMockPhotoCard('Architectural Frame', 'assets/images/mock1.png'),
-                            _buildMockPhotoCard('Internal Layout', 'assets/images/mock2.png'),
-                          ],
-                        ),
-                ),
-                const SizedBox(height: 28),
-
-                // 4. Send Service Request Card (Matches Right Screen Form Card!)
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.01),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.mail_outline, color: Color(0xFF0284C7), size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Send Service Request',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                  ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-
-                      // Completion Time Input
-                      const Text(
-                        'Estimated Completion Time',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _timelineController,
-                        decoration: InputDecoration(
-                          hintText: 'e.g., 15 Days',
-                          prefixIcon: const Icon(Icons.timer_outlined, color: Color(0xFF64748B)),
-                          fillColor: Colors.white,
-                          filled: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Proposal Note Input
-                      const Text(
-                        'Proposal Note',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _coverMessageController,
-                        maxLines: 5,
-                        decoration: InputDecoration(
-                          hintText: 'I have 10+ years of experience in villa projects. We can ensure the highest safety standards and use grade-A materials as requested...',
-                          fillColor: Colors.white,
-                          filled: true,
-                          contentPadding: const EdgeInsets.all(20),
-                          enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Info Tag
-                      const Text(
-                        'Your profile, including project history and experience, will be shared with the user.',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8), height: 1.4),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Submit Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : ElevatedButton.icon(
-                                onPressed: () => _submit(budgetMin, budgetMax),
-                                icon: const Icon(Icons.send, size: 16, color: Colors.white),
-                                label: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Text('Send Request ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                    Icon(Icons.arrow_forward, size: 14, color: Colors.white),
-                                  ],
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0284C7),
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -504,38 +454,38 @@ class _SendProposalScreenState extends ConsumerState<SendProposalScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(AppRadius.small),
+        border: Border.all(color: AppColors.darkBorder),
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+        style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
       ),
     );
   }
 
-  Widget _buildMockPhotoCard(String name, String assetPath) {
+  Widget _buildMockPhotoCard(String name) {
     return Container(
       width: 220,
       margin: const EdgeInsets.only(right: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFCBD5E1)),
+        color: AppColors.darkCard,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.darkBorder),
       ),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const Icon(Icons.landscape, size: 48, color: Color(0xFF94A3B8)),
+          const Icon(Icons.landscape, size: 48, color: AppColors.textMuted),
           Positioned(
             bottom: 10,
             left: 10,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.black.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(AppRadius.small),
               ),
               child: Text(
                 name,

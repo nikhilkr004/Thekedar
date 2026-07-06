@@ -4,6 +4,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/contractor_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/theme/design_system.dart';
 
 class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
@@ -42,7 +43,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Wallet credited with $_pendingCredits credits successfully!'),
-            backgroundColor: const Color(0xFF059669),
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -51,7 +52,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update wallet: $e'),
-            backgroundColor: const Color(0xFFDC2626),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -66,7 +67,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment failed: ${response.message}'),
-        backgroundColor: const Color(0xFFDC2626),
+        backgroundColor: AppColors.error,
       ),
     );
   }
@@ -88,10 +89,15 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Buy $_pendingCredits Credits'),
-          content: const Text(
+          backgroundColor: AppColors.darkDialog,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.large)),
+          title: Text(
+            'Buy $_pendingCredits Credits',
+            style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+          ),
+          content: Text(
             'Choose a payment method. If you are on an emulator or don\'t have Google Play Services configured, select "Simulate Payment" to add credits instantly.',
+            style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
@@ -99,7 +105,10 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 Navigator.pop(context);
                 _creditWallet();
               },
-              child: const Text('Simulate Payment (Dev)'),
+              child: Text(
+                'Simulate Payment (Dev)',
+                style: AppTypography.button.copyWith(color: AppColors.primaryLight, fontSize: 13),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -107,11 +116,14 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 _openRazorpayCheckout(title, amount);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0284C7),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.small)),
               ),
-              child: const Text('Use Razorpay (SDK)'),
+              child: Text(
+                'Use Razorpay (SDK)',
+                style: AppTypography.button.copyWith(color: Colors.white, fontSize: 13),
+              ),
             ),
           ],
         );
@@ -122,7 +134,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   void _openRazorpayCheckout(String title, String amount) {
     final options = {
       'key': 'rzp_test_Sw1y7ceIZ6e1Ot',
-      'amount': (int.parse(amount.replaceAll(RegExp(r'[^0-9]'), '')) * 100), // in paise
+      'amount': (int.parse(amount.replaceAll(RegExp(r'[^0-9]'), '')) * 100),
       'name': 'Thekedar Connect',
       'description': title,
       'prefill': {
@@ -152,308 +164,304 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   Widget build(BuildContext context) {
     final walletAsync = ref.watch(walletProvider);
     final txAsync = ref.watch(walletTransactionsProvider);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 840;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0284C7), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: const Text(
+        title: Text(
           'My Wallet',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary),
             onPressed: () {},
           )
         ],
       ),
-      body: walletAsync.when(
-        data: (wallet) {
-          final balance = wallet?['balance'] ?? 0;
-          final totalEarned = wallet?['total_earned'] ?? 0;
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 840 : double.infinity,
+          child: walletAsync.when(
+            data: (wallet) {
+              final balance = wallet?['balance'] ?? 0;
+              final totalEarned = wallet?['total_earned'] ?? 0;
 
-          return txAsync.when(
-            data: (transactions) {
-              // Get last spend amount
-              final lastSpendTx = transactions.firstWhere(
-                (t) => (t['credits'] ?? 0) < 0,
-                orElse: () => <String, dynamic>{'credits': 0},
-              );
-              final lastSpend = lastSpendTx['credits'] ?? 0;
+              return txAsync.when(
+                data: (transactions) {
+                  final lastSpendTx = transactions.firstWhere(
+                    (t) => (t['credits'] ?? 0) < 0,
+                    orElse: () => <String, dynamic>{'credits': 0},
+                  );
+                  final lastSpend = lastSpendTx['credits'] ?? 0;
 
-              return SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Premium Blue Available Balance Card
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF025CAB), Color(0xFF0E70C7)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF025CAB).withValues(alpha: 0.25),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Available Balance',
-                            style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.wallet, color: Colors.white, size: 36),
-                              const SizedBox(width: 8),
-                              Text(
-                                '$balance',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 42,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Credits',
-                            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 24),
-                          // Stats row
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      const Text(
-                                        'Lifetime Earned',
-                                        style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '$totalEarned Cr',
-                                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      const Text(
-                                        'Last Spend',
-                                        style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '$lastSpend Cr',
-                                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // 2. Buy More Credits Section
-                    const Text(
-                      'Buy More Credits',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Packages List
-                    _buildCreditPackageCard('50 Credits', '₹ 500', Icons.monetization_on_outlined, false),
-                    _buildCreditPackageCard('100 Credits', '₹ 900', Icons.payments_outlined, false),
-                    _buildCreditPackageCard('200 Credits', '₹ 1700', Icons.stars_outlined, true),
-
-                    const SizedBox(height: 24),
-
-                    // 3. Recent Activity Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Recent Activity',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                        ),
-                        if (transactions.isNotEmpty)
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                _showAllActivity = !_showAllActivity;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Text(
-                                _showAllActivity ? 'Show Less' : 'View All',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                        // 1. Premium Blue Available Balance Card
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.primaryGradient,
+                            borderRadius: BorderRadius.circular(AppRadius.xl),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.2),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
-                            ),
+                            ],
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    if (transactions.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Column(
-                          children: const [
-                            Icon(Icons.history_toggle_off, size: 48, color: Color(0xFF94A3B8)),
-                            SizedBox(height: 8),
-                            Text(
-                              'No transactions found',
-                              style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                        ),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _showAllActivity
-                              ? transactions.length
-                              : (transactions.length > 3 ? 3 : transactions.length),
-                          separatorBuilder: (context, idx) => const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-                          itemBuilder: (context, index) {
-                            final tx = transactions[index];
-                            final txId = tx['id']?.toString() ?? '';
-                            final txCode = txId.isNotEmpty
-                                ? (tx['type'] == 'spend' ? '#LAD-${txId.substring(0, 4).toUpperCase()}' : 'TXN-${txId.substring(0, 4).toUpperCase()}')
-                                : 'TXN-REF';
-
-                            final type = tx['type'] ?? 'purchase';
-                            final credits = tx['credits'] ?? 0;
-                            final desc = tx['description'] ?? 'Wallet Update';
-                            final dateStr = _formatDateTime(tx['created_at']?.toString());
-
-                            final isSpend = type == 'spend' || credits < 0;
-
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                              child: Row(
+                          padding: const EdgeInsets.all(AppSpacing.xxl),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Available Balance',
+                                style: AppTypography.caption.copyWith(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  // Circle Icon
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: isSpend ? const Color(0xFFFEF2F2) : const Color(0xFFECFDF5),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      isSpend ? Icons.logout_outlined : Icons.add_circle_outline,
-                                      color: isSpend ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  // Details Text
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          desc,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A)),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '$dateStr • $txCode',
-                                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  const Icon(Icons.wallet, color: Colors.white, size: 36),
                                   const SizedBox(width: 8),
-                                  // Amount
                                   Text(
-                                    isSpend ? '$credits Credits' : '+$credits Credits',
-                                    style: TextStyle(
+                                    '$balance',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 42,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: isSpend ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                                      letterSpacing: -0.5,
                                     ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Credits',
+                                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(AppRadius.medium),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          const Text(
+                                            'Lifetime Earned',
+                                            style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '$totalEarned Cr',
+                                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(AppRadius.medium),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          const Text(
+                                            'Last Spend',
+                                            style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '$lastSpend Cr',
+                                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
-                ),
+                        const SizedBox(height: AppSpacing.spacing28),
+
+                        // 2. Buy More Credits Section
+                        Text(
+                          'Buy More Credits',
+                          style: AppTypography.smallBody.copyWith(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        _buildCreditPackageCard('50 Credits', '₹ 500', Icons.monetization_on_outlined, false),
+                        _buildCreditPackageCard('100 Credits', '₹ 900', Icons.payments_outlined, false),
+                        _buildCreditPackageCard('200 Credits', '₹ 1700', Icons.stars_outlined, true),
+
+                        const SizedBox(height: AppSpacing.spacing28),
+
+                        // 3. Recent Activity Section
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Recent Activity',
+                              style: AppTypography.smallBody.copyWith(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            ),
+                            if (transactions.isNotEmpty)
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _showAllActivity = !_showAllActivity;
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Text(
+                                    _showAllActivity ? 'Show Less' : 'View All',
+                                    style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.primaryLight),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        if (transactions.isEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 32),
+                            decoration: BoxDecoration(
+                              color: AppColors.darkCard,
+                              borderRadius: BorderRadius.circular(AppRadius.large),
+                              border: Border.all(color: AppColors.darkBorder),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.history_toggle_off, size: 48, color: AppColors.textMuted),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'No transactions found',
+                                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.darkCard,
+                              borderRadius: BorderRadius.circular(AppRadius.large),
+                              border: Border.all(color: AppColors.darkBorder, width: 1.0),
+                            ),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _showAllActivity
+                                  ? transactions.length
+                                  : (transactions.length > 3 ? 3 : transactions.length),
+                              separatorBuilder: (context, idx) => const Divider(height: 1, thickness: 1, color: AppColors.darkDivider),
+                              itemBuilder: (context, index) {
+                                final tx = transactions[index];
+                                final txId = tx['id']?.toString() ?? '';
+                                final txCode = txId.isNotEmpty
+                                    ? (tx['type'] == 'spend' ? '#LAD-${txId.substring(0, 4).toUpperCase()}' : 'TXN-${txId.substring(0, 4).toUpperCase()}')
+                                    : 'TXN-REF';
+
+                                final type = tx['type'] ?? 'purchase';
+                                final credits = tx['credits'] ?? 0;
+                                final desc = tx['description'] ?? 'Wallet Update';
+                                final dateStr = _formatDateTime(tx['created_at']?.toString());
+                                final isSpend = type == 'spend' || credits < 0;
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: isSpend ? AppColors.error.withOpacity(0.12) : AppColors.success.withOpacity(0.12),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          isSpend ? Icons.logout_outlined : Icons.add_circle_outline,
+                                          color: isSpend ? AppColors.error : AppColors.success,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.md),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              desc,
+                                              style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '$dateStr • $txCode',
+                                              style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        isSpend ? '$credits Credits' : '+$credits Credits',
+                                        style: AppTypography.smallBody.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: isSpend ? AppColors.error : AppColors.success,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+                loading: () => const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: AppColors.primary))),
+                error: (e, st) => Center(child: Padding(padding: const EdgeInsets.all(40), child: Text('Error loading transactions: $e', style: const TextStyle(color: AppColors.error)))),
               );
             },
-            loading: () => const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
-            error: (e, st) => Center(child: Padding(padding: const EdgeInsets.all(40), child: Text('Error loading transactions: $e'))),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error loading wallet: $e')),
+            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            error: (e, st) => Center(child: Text('Error loading wallet: $e', style: const TextStyle(color: AppColors.error))),
+          ),
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3, // Highlight Profile/Wallet tab
-        selectedItemColor: const Color(0xFF0284C7),
-        unselectedItemColor: const Color(0xFF64748B),
+        currentIndex: 3,
+        selectedItemColor: AppColors.primaryLight,
+        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: AppColors.darkSurface,
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
@@ -485,66 +493,55 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.darkCard,
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(
-          color: hasBestValueBadge ? const Color(0xFF025CAB).withValues(alpha: 0.15) : const Color(0xFFF1F5F9),
-          width: hasBestValueBadge ? 2 : 1.5,
+          color: hasBestValueBadge ? AppColors.secondary.withOpacity(0.3) : AppColors.darkBorder,
+          width: hasBestValueBadge ? 2 : 1.0,
         ),
-        boxShadow: hasBestValueBadge
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF025CAB).withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            : null,
+        boxShadow: hasBestValueBadge ? AppShadows.darkCardShadow : null,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(AppRadius.large - 1.0),
         child: Container(
           decoration: BoxDecoration(
-            color: hasBestValueBadge ? const Color(0xFF025CAB).withValues(alpha: 0.02) : Colors.white,
+            color: hasBestValueBadge ? AppColors.secondary.withOpacity(0.04) : Colors.transparent,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
           child: Row(
             children: [
-              // Icon container
               Container(
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
-                child: Icon(icon, color: const Color(0xFF0284C7), size: 24),
+                child: Icon(icon, color: AppColors.primaryLight, size: 24),
               ),
-              const SizedBox(width: 14),
-              // Package details
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                      style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       price,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                      style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
               ),
-              // Best Value badge
               if (hasBestValueBadge) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF025CAB),
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.secondary,
+                    borderRadius: BorderRadius.circular(AppRadius.circular),
                   ),
                   child: const Text(
                     'BEST VALUE',
@@ -553,19 +550,18 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 ),
                 const SizedBox(width: 8),
               ],
-              // Buy button
               ElevatedButton(
                 onPressed: () => _openPurchaseSelection(title, price),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF025CAB),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.small)),
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
-                child: const Text(
+                child: Text(
                   'Buy',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: AppTypography.button.copyWith(color: Colors.white, fontSize: 13),
                 ),
               ),
             ],

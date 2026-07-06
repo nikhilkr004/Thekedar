@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/theme/design_system.dart';
 
 class ContractorProjectDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> quote;
@@ -27,7 +28,6 @@ class _ContractorProjectDetailsScreenState extends State<ContractorProjectDetail
     _fetchClientDetails();
   }
 
-  // Parse GPS coordinates automatically to a human-readable address
   Future<void> _fetchReadableAddress() async {
     final project = widget.quote['projects'] as Map<String, dynamic>?;
     if (project == null) return;
@@ -94,18 +94,17 @@ class _ContractorProjectDetailsScreenState extends State<ContractorProjectDetail
     final project = widget.quote['projects'] as Map<String, dynamic>?;
     if (project == null) {
       return Scaffold(
+        backgroundColor: AppColors.darkBackground,
         appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('Project details not found.')),
+        body: const Center(child: Text('Project details not found.', style: TextStyle(color: AppColors.textPrimary))),
       );
     }
 
     final title = project['title'] ?? 'Luxury Project';
-    final category = project['category'] ?? 'Construction';
     final city = project['city'] ?? 'Location';
     final desc = project['description'] ?? '';
     final status = (widget.quote['status'] ?? 'pending').toString().toLowerCase();
 
-    // Parse drawing/drawing attachments
     String? pdfUrl;
     final pdfMatch = RegExp(r'\[Drawing PDF URL:\s*(https?://[^\s\]]+)').firstMatch(desc);
     if (pdfMatch != null) {
@@ -128,333 +127,343 @@ class _ContractorProjectDetailsScreenState extends State<ContractorProjectDetail
     cleanDesc = cleanDesc.trim();
 
     final isHired = status == 'hired' || status == 'accepted';
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFDFF),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Project & Client Info',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gallery
-            if (imageUrls.isNotEmpty)
-              Container(
-                height: 200,
-                color: const Color(0xFFF8FAFC),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: imageUrls.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      width: 280,
-                      margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(19),
-                        child: Image.network(
-                          imageUrls[index],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorBuilder: (context, error, stackTrace) => const Center(
-                            child: Icon(Icons.broken_image, color: Color(0xFF94A3B8), size: 36),
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 600 : double.infinity,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Gallery
+                if (imageUrls.isNotEmpty)
+                  Container(
+                    height: 200,
+                    color: AppColors.darkSurface,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: imageUrls.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          width: 280,
+                          margin: const EdgeInsets.only(right: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(AppRadius.large),
+                            border: Border.all(color: AppColors.darkBorder),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isHired ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          status.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: isHired ? const Color(0xFF065F46) : const Color(0xFFD97706),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined, color: Color(0xFF0284C7), size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: _isGeocoding
-                            ? const LinearProgressIndicator(minHeight: 2)
-                            : Text(
-                                _readableAddress.isEmpty ? '$city, India' : _readableAddress,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadius.large - 1.0),
+                            child: Image.network(
+                              imageUrls[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 36),
                               ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (cleanDesc.isNotEmpty) ...[
-                    Text(
-                      cleanDesc,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF475569),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Bidding parameters
-                  const Divider(color: Color(0xFFF1F5F9)),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('My Proposal Price', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
-                          const SizedBox(height: 4),
-                          Text(
-                            '₹${widget.quote['estimated_cost_min']} - ₹${widget.quote['estimated_cost_max']}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('Proposed Duration', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${widget.quote['estimated_timeline']}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(color: Color(0xFFF1F5F9)),
-                  const SizedBox(height: 16),
-
-                  // Client Contact details section (Conditional)
-                  const Text(
-                    'Client Contact Information',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
-                  const SizedBox(height: 10),
-
-                  if (isHired) ...[
-                    if (_loadingClient)
-                      const Center(child: CircularProgressIndicator())
-                    else if (_clientDetails != null)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF0FDF4),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFDCFCE7)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.person, color: Color(0xFF15803D), size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _clientDetails!['full_name'] ?? 'Client',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF15803D), fontSize: 14),
-                                ),
-                              ],
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: AppTypography.subtitle.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isHired ? AppColors.success.withOpacity(0.12) : AppColors.warning.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(AppRadius.small),
+                            ),
+                            child: Text(
+                              status.toUpperCase(),
+                              style: AppTypography.caption.copyWith(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isHired ? AppColors.success : AppColors.warning,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, color: AppColors.primaryLight, size: 16),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _isGeocoding
+                                ? const LinearProgressIndicator(minHeight: 2, color: AppColors.primary)
+                                : Text(
+                                    _readableAddress.isEmpty ? '$city, India' : _readableAddress,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                                  ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      if (cleanDesc.isNotEmpty) ...[
+                        Text(
+                          cleanDesc,
+                          style: AppTypography.body.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+
+                      // Bidding parameters
+                      const Divider(color: AppColors.darkDivider),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('My Proposal Price', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+                              const SizedBox(height: 4),
+                              Text(
+                                '₹${widget.quote['estimated_cost_min']} - ₹${widget.quote['estimated_cost_max']}',
+                                style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.success),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('Proposed Duration', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${widget.quote['estimated_timeline']}',
+                                style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      const Divider(color: AppColors.darkDivider),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Client Contact details section
+                      Text(
+                        'Client Contact Information',
+                        style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      const SizedBox(height: 10),
+
+                      if (isHired) ...[
+                        if (_loadingClient)
+                          const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                        else if (_clientDetails != null)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(AppRadius.large),
+                              border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.phone, color: Color(0xFF15803D), size: 16),
+                                    const Icon(Icons.person, color: AppColors.success, size: 18),
                                     const SizedBox(width: 8),
                                     Text(
-                                      _clientDetails!['phone'] ?? '',
-                                      style: const TextStyle(fontFamily: 'monospace', color: Color(0xFF15803D)),
+                                      _clientDetails!['full_name'] ?? 'Client',
+                                      style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.success),
                                     ),
                                   ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.call, color: Color(0xFF15803D), size: 20),
-                                  onPressed: () async {
-                                    final url = Uri.parse('tel:${_clientDetails!['phone']}');
-                                    if (await launchUrl(url)) {}
-                                  },
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.phone, color: AppColors.success, size: 16),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _clientDetails!['phone'] ?? '',
+                                          style: const TextStyle(fontFamily: 'monospace', color: AppColors.success),
+                                        ),
+                                      ],
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.call, color: AppColors.success, size: 20),
+                                      onPressed: () async {
+                                        final url = Uri.parse('tel:${_clientDetails!['phone']}');
+                                        if (await launchUrl(url)) {}
+                                      },
+                                    ),
+                                  ],
                                 ),
+                                if (_clientDetails!['email'] != null && _clientDetails!['email'].toString().isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.email, color: AppColors.success, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _clientDetails!['email'] ?? '',
+                                        style: AppTypography.caption.copyWith(color: AppColors.success),
+                                      ),
+                                    ],
+                                  ),
+                                ]
                               ],
                             ),
-                            if (_clientDetails!['email'] != null && _clientDetails!['email'].toString().isNotEmpty) ...[
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(Icons.email, color: Color(0xFF15803D), size: 16),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _clientDetails!['email'] ?? '',
-                                    style: const TextStyle(color: Color(0xFF15803D), fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ]
-                          ],
-                        ),
-                      )
-                    else
-                      const Text('Failed to load shared details.', style: TextStyle(color: Colors.red, fontSize: 12))
-                  ] else ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        children: const [
-                          Icon(Icons.lock_outline, color: Color(0xFF94A3B8), size: 20),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Client contact and chat room unlock automatically once your bid is accepted!',
-                              style: TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.4),
-                            ),
                           )
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Attachments Drawing
-                  if (pdfUrl != null) ...[
-                    const Text(
-                      'Project drawing',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                    ),
-                    const SizedBox(height: 10),
-                    InkWell(
-                      onTap: () async {
-                        try {
-                          final uri = Uri.parse(pdfUrl!);
-                          await launchUrl(uri, mode: LaunchMode.inAppWebView);
-                        } catch (e) {
-                          Clipboard.setData(ClipboardData(text: pdfUrl!));
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Drawing link copied to clipboard!')),
-                            );
-                          }
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        else
+                          const Text('Failed to load shared details.', style: TextStyle(color: AppColors.error, fontSize: 12))
+                      ] else ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(AppRadius.large),
+                            border: Border.all(color: AppColors.darkBorder),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.lock_outline, color: AppColors.textMuted, size: 20),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Client contact and chat room unlock automatically once your bid is accepted!',
+                                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary, height: 1.4),
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 24),
-                            const SizedBox(width: 10),
-                            const Expanded(
-                              child: Text(
-                                'View drawing specifications (PDF)',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF334155)),
+                      ],
+
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Attachments Drawing
+                      if (pdfUrl != null) ...[
+                        Text(
+                          'Project drawing',
+                          style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 10),
+                        InkWell(
+                          onTap: () async {
+                            try {
+                              final uri = Uri.parse(pdfUrl!);
+                              await launchUrl(uri, mode: LaunchMode.inAppWebView);
+                            } catch (e) {
+                              Clipboard.setData(ClipboardData(text: pdfUrl!));
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Drawing link copied to clipboard!')),
+                                );
+                              }
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.darkSurface,
+                              borderRadius: BorderRadius.circular(AppRadius.medium),
+                              border: Border.all(color: AppColors.darkBorder),
+                            ),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.picture_as_pdf, color: AppColors.error, size: 24),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'View drawing specifications (PDF)',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary),
+                                  ),
+                                ),
+                                Icon(Icons.open_in_new, color: AppColors.primaryLight, size: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+
+                      // Action Chat Button
+                      if (isHired) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: AppGradients.primaryGradient,
+                              borderRadius: AppRadius.buttonBorderRadius,
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                context.push('/chat', extra: project['id']);
+                              },
+                              icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.white),
+                              label: const Text('Start Chatting', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorderRadius),
                               ),
                             ),
-                            const Icon(Icons.open_in_new, color: Color(0xFF0284C7), size: 16),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Action Chat Button
-                  if (isHired) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          context.push('/chat', extra: project['id']);
-                        },
-                        icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.white),
-                        label: const Text('Start Chatting', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0284C7),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

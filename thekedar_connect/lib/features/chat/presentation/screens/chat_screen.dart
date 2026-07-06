@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/chat_provider.dart';
+import '../../../../core/theme/design_system.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String projectId;
@@ -37,7 +38,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final supabase = Supabase.instance.client;
       final currentUserId = supabase.auth.currentUser!.id;
 
-      // 1. Fetch project owner (customer_id)
       final project = await supabase
           .from('projects')
           .select('title, customer_id')
@@ -48,7 +48,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final projectTitle = project['title'] ?? 'Project';
 
       if (currentUserId == customerId) {
-        // Current user is Customer -> chat with the accepted Contractor
         final acceptedApp = await supabase
             .from('applications')
             .select('contractor_id, contractors(user_id, business_name, users(phone, email))')
@@ -85,7 +84,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           });
         }
       } else {
-        // Current user is Contractor -> chat with the Customer
         final projectData = await supabase
             .from('projects')
             .select('customer_id, users:customer_id(phone, email, full_name)')
@@ -153,14 +151,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(chatMessagesProvider(widget.projectId));
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -168,7 +168,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             Text(
               _chatPartnerName,
-              style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16),
+              style: AppTypography.smallBody.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
             ),
             if (!_isResolving && _resolvedReceiverId != null)
               Row(
@@ -177,10 +177,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle),
+                    decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 4),
-                  const Text('Active Now', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                  Text('Active Now', style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontSize: 10)),
                 ],
               ),
           ],
@@ -188,174 +188,174 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
       ),
-      body: _isResolving
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                if (_partnerPhone != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF0FDF4),
-                      border: Border(bottom: BorderSide(color: Color(0xFFDCFCE7))),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.shield_outlined, color: Color(0xFF15803D), size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Shared Details: Phone: $_partnerPhone ${_partnerEmail != null && _partnerEmail!.isNotEmpty ? "• Email: $_partnerEmail" : ""}',
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF15803D), fontWeight: FontWeight.w600),
-                          ),
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 600 : double.infinity,
+          child: _isResolving
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : Column(
+                  children: [
+                    if (_partnerPhone != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.08),
+                          border: const Border(bottom: BorderSide(color: AppColors.darkDivider)),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.phone, color: Color(0xFF15803D), size: 16),
-                          constraints: const BoxConstraints(),
-                          padding: EdgeInsets.zero,
-                          onPressed: () async {
-                            final url = Uri.parse('tel:$_partnerPhone');
-                            if (await launchUrl(url)) {}
-                          },
+                        child: Row(
+                          children: [
+                            const Icon(Icons.shield_outlined, color: AppColors.success, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Shared Details: Phone: $_partnerPhone ${_partnerEmail != null && _partnerEmail!.isNotEmpty ? "• Email: $_partnerEmail" : ""}',
+                                style: AppTypography.caption.copyWith(color: AppColors.success, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.phone, color: AppColors.success, size: 16),
+                              constraints: const BoxConstraints(),
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                final url = Uri.parse('tel:$_partnerPhone');
+                                if (await launchUrl(url)) {}
+                              },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: messagesAsync.when(
-                    data: (messages) {
-                      if (messages.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.chat_bubble_outline, size: 48, color: Color(0xFF94A3B8)),
-                              SizedBox(height: 12),
-                              Text(
-                                'No messages yet',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Start the conversation now!',
-                                style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                        reverse: true,
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          // Show newest messages at the bottom
-                          final m = messages[messages.length - 1 - index];
-                          final isMe = m['sender_id'] == currentUserId;
-
-                          return Align(
-                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.75,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isMe ? const Color(0xFF0284C7) : Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(20),
-                                  topRight: const Radius.circular(20),
-                                  bottomLeft: Radius.circular(isMe ? 20 : 4),
-                                  bottomRight: Radius.circular(isMe ? 4 : 20),
-                                ),
-                                border: isMe ? null : Border.all(color: const Color(0xFFE2E8F0)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.01),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                      ),
+                    Expanded(
+                      child: messagesAsync.when(
+                        data: (messages) {
+                          if (messages.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.chat_bubble_outline, size: 48, color: AppColors.textMuted),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No messages yet',
+                                    style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Start the conversation now!',
+                                    style: AppTypography.caption.copyWith(color: AppColors.textMuted),
                                   ),
                                 ],
                               ),
-                              child: Text(
-                                m['content'] ?? '',
-                                style: TextStyle(
-                                  color: isMe ? Colors.white : const Color(0xFF334155),
-                                  fontSize: 14,
-                                  height: 1.4,
+                            );
+                          }
+
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+                            reverse: true,
+                            itemCount: messages.length,
+                            itemBuilder: (context, index) {
+                              final m = messages[messages.length - 1 - index];
+                              final isMe = m['sender_id'] == currentUserId;
+
+                              return Align(
+                                alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  constraints: BoxConstraints(
+                                    maxWidth: screenWidth * (isLargeScreen ? 0.6 : 0.75),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isMe ? AppColors.primary : AppColors.darkCard,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: const Radius.circular(20),
+                                      topRight: const Radius.circular(20),
+                                      bottomLeft: Radius.circular(isMe ? 20 : 4),
+                                      bottomRight: Radius.circular(isMe ? 4 : 20),
+                                    ),
+                                    border: isMe ? null : Border.all(color: AppColors.darkBorder),
+                                    boxShadow: AppShadows.darkCardShadow,
+                                  ),
+                                  child: Text(
+                                    m['content'] ?? '',
+                                    style: AppTypography.body.copyWith(
+                                      color: isMe ? Colors.white : AppColors.textPrimary,
+                                      height: 1.4,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, st) => Center(child: Text('Error loading messages: $e', style: const TextStyle(color: Colors.red))),
-                  ),
-                ),
-                
-                // Message Composer Box
-                Container(
-                  padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24, top: 12),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.add, color: Color(0xFF64748B)),
-                          onPressed: () {},
-                        ),
+                        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                        error: (e, st) => Center(child: Text('Error loading messages: $e', style: const TextStyle(color: AppColors.error))),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                            fillColor: const Color(0xFFF8FAFC),
-                            filled: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide.none,
+                    ),
+                    
+                    // Message Composer Box
+                    Container(
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24, top: 12),
+                      decoration: const BoxDecoration(
+                        color: AppColors.darkSurface,
+                        border: Border(top: BorderSide(color: AppColors.darkDivider)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.darkCard,
+                              borderRadius: BorderRadius.circular(AppRadius.medium),
+                              border: Border.all(color: AppColors.darkBorder),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.add, color: AppColors.textSecondary),
+                              onPressed: () {},
                             ),
                           ),
-                          onSubmitted: (_) => _send(),
-                        ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _messageController,
+                              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                              decoration: InputDecoration(
+                                hintText: 'Type a message...',
+                                hintStyle: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                                fillColor: AppColors.darkCard,
+                                filled: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(AppRadius.circular),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              onSubmitted: (_) => _send(),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: AppShadows.darkCardShadow,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                              onPressed: _send,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0284C7),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.send, color: Colors.white, size: 18),
-                          onPressed: _send,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 }

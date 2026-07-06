@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/theme/design_system.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -25,7 +26,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
       final supabase = Supabase.instance.client;
       final userId = supabase.auth.currentUser!.id;
 
-      // 1. Fetch user role
       final profile = await supabase
           .from('users')
           .select('role')
@@ -40,7 +40,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
       List<Map<String, dynamic>> loadedChats = [];
 
       if (role == 'customer') {
-        // Fetch projects where customer is the owner and contractor is hired
         final response = await supabase
             .from('projects')
             .select('id, title, category, status, hired_contractor_id, contractors(business_name)')
@@ -59,7 +58,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
           }
         }
       } else {
-        // Current user is contractor -> find contractor id
         final contractorResponse = await supabase
             .from('contractors')
             .select('id')
@@ -68,7 +66,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         
         if (contractorResponse != null) {
           final contractorId = contractorResponse['id'];
-          // Fetch projects where contractor is hired
           final response = await supabase
               .from('projects')
               .select('id, title, category, status, customer_id, users:customer_id(full_name)')
@@ -102,100 +99,108 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        title: const Text(
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
+        title: Text(
           'My Chats',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _chats.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.chat_bubble_outline, size: 56, color: Color(0xFF94A3B8)),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No active chats yet',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 15),
-                      ),
-                      const SizedBox(height: 6),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Text(
-                          _userRole == 'customer'
-                              ? 'Accept a contractor\'s proposal to unlock the chat room and start discussing details.'
-                              : 'Client chats unlock automatically once a project proposal gets accepted.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8), height: 1.4),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _chats.length,
-                  itemBuilder: (context, index) {
-                    final chat = _chats[index];
-                    final category = (chat['category'] ?? 'General').toString();
-
-                    IconData categoryIcon = Icons.home_repair_service;
-                    if (category.toLowerCase() == 'plumber') {
-                      categoryIcon = Icons.plumbing;
-                    } else if (category.toLowerCase() == 'electrician') {
-                      categoryIcon = Icons.electrical_services;
-                    } else if (category.toLowerCase() == 'painter') {
-                      categoryIcon = Icons.format_paint;
-                    } else if (category.toLowerCase() == 'carpenter') {
-                      categoryIcon = Icons.handyman;
-                    } else if (category.toLowerCase() == 'mason') {
-                      categoryIcon = Icons.architecture;
-                    }
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFFEFF6FF),
-                          child: Icon(categoryIcon, color: const Color(0xFF0284C7), size: 20),
-                        ),
-                        title: Text(
-                          chat['partner_name'],
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 15),
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Text(
-                            'Project: ${chat['title']}',
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 600 : double.infinity,
+          child: _loading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : _chats.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.chat_bubble_outline, size: 56, color: AppColors.textMuted),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No active chats yet',
+                            style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                           ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right, color: Color(0xFF94A3B8)),
-                        onTap: () {
-                          context.push('/chat', extra: chat['project_id']);
-                        },
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: Text(
+                              _userRole == 'customer'
+                                  ? 'Accept a contractor\'s proposal to unlock the chat room and start discussing details.'
+                                  : 'Client chats unlock automatically once a project proposal gets accepted.',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.caption.copyWith(color: AppColors.textMuted, height: 1.4),
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      itemCount: _chats.length,
+                      itemBuilder: (context, index) {
+                        final chat = _chats[index];
+                        final category = (chat['category'] ?? 'General').toString();
 
+                        IconData categoryIcon = Icons.home_repair_service;
+                        if (category.toLowerCase() == 'plumber') {
+                          categoryIcon = Icons.plumbing;
+                        } else if (category.toLowerCase() == 'electrician') {
+                          categoryIcon = Icons.electrical_services;
+                        } else if (category.toLowerCase() == 'painter') {
+                          categoryIcon = Icons.format_paint;
+                        } else if (category.toLowerCase() == 'carpenter') {
+                          categoryIcon = AppIcons.handyman;
+                        } else if (category.toLowerCase() == 'mason') {
+                          categoryIcon = Icons.architecture;
+                        }
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(AppRadius.large),
+                            border: Border.all(color: AppColors.darkBorder),
+                            boxShadow: AppShadows.darkCardShadow,
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.primary.withOpacity(0.15),
+                              child: Icon(categoryIcon, color: AppColors.primaryLight, size: 20),
+                            ),
+                            title: Text(
+                              chat['partner_name'],
+                              style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                'Project: ${chat['title']}',
+                                style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                            onTap: () {
+                              context.push('/chat', extra: chat['project_id']);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+        ),
+      ),
     );
   }
 }
