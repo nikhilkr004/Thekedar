@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ठेकेदार कनेक्ट</string>
+    <string name="choose_language">अपनी भाषा चुनें</string>
+    <string name="sync_success">भाषा को क्लाउड पर सफलतापूर्वक सिंक किया गया</string>
+    <string name="sync_failed">भाषा को क्लाउड पर सिंक करने में विफल</string>
+    <string name="dialog_title">डायनामिक स्थानीयकरण</string>
+    <string name="dialog_message">जब आप भाषा सेटिंग्स बदलते हैं तो यह संदेश तुरंत अपडेट हो जाता है।</string>
+    <string name="ok">ठीक है</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="notification_channel_name">सामान्य अलर्ट</string>
+    <string name="notification_title">ठेकेदार कनेक्ट में आपका स्वागत है!</string>
+    <string name="notification_body">हमारे प्लेटफ़ॉर्म से जुड़ने के लिए धन्यवाद। प्रोजेक्ट्स देखने के लिए टैप करें।</string>
+</resources>

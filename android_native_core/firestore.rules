@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // Users can read their own profile document
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Users can only write/update their own profile document preferred language field
+      allow create, update: if request.auth != null && request.auth.uid == userId 
+                            && (request.resource.data.keys().hasAll(['preferred_language'])
+                            || request.resource.data.preferred_language is string);
+    }
+  }
+}

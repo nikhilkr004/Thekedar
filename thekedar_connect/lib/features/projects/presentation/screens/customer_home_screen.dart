@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/design_system.dart';
+import '../../../contractor/presentation/providers/contractor_provider.dart';
+import '../../../contractor/presentation/models/contractor_profile.dart';
 
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key});
@@ -276,25 +279,51 @@ class CustomerHomeScreen extends ConsumerWidget {
                 ),
                 
                 // Experts horizontal list
-                SizedBox(
-                  height: 280,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.only(left: AppSpacing.lg),
-                    children: [
-                      _buildExpertCard(
-                        'Rajesh Kumar',
-                        'Master Electrician',
-                        '12 years',
-                        4.9,
+                ref.watch(topContractorsProvider).when(
+                  data: (contractors) {
+                    if (contractors.isEmpty) {
+                      return const SizedBox(
+                        height: 280,
+                        child: Center(
+                          child: Text(
+                            'No verified experts found yet.',
+                            style: TextStyle(color: AppColors.textMuted),
+                          ),
+                        ),
+                      );
+                    }
+                    return SizedBox(
+                      height: 280,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.only(left: AppSpacing.lg),
+                        itemCount: contractors.length,
+                        itemBuilder: (context, index) {
+                          final c = contractors[index];
+                          final exp = '${c.yearsExperience} years';
+                          final primaryCategory = c.categories.isNotEmpty ? c.categories.first : 'Contractor';
+                          return _buildExpertCard(
+                            context,
+                            c,
+                            exp,
+                            5.0, // Initial 5-star rating as requested
+                          );
+                        },
                       ),
-                      _buildExpertCard(
-                        'Amit Singh',
-                        'Expert Painter',
-                        '8 years',
-                        4.8,
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    height: 280,
+                    child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  ),
+                  error: (e, s) => const SizedBox(
+                    height: 280,
+                    child: Center(
+                      child: Text(
+                        'Failed to load experts.',
+                        style: TextStyle(color: AppColors.error),
                       ),
-                    ],
+                    ),
                   ),
                 ),
 
@@ -508,121 +537,384 @@ class CustomerHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildExpertCard(String name, String role, String exp, double rating) {
-    String imagePath = '';
-    if (name.contains('Rajesh')) {
-      imagePath = 'assets/images/expert_rajesh.png';
-    } else if (name.contains('Amit')) {
-      imagePath = 'assets/images/expert_amit.png';
-    }
-
-    return Container(
-      width: 200,
-      margin: const EdgeInsets.only(right: AppSpacing.lg, bottom: AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: AppColors.darkCard,
-        borderRadius: BorderRadius.circular(AppRadius.large),
-        border: Border.all(color: AppColors.darkBorder, width: 1.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
-            child: Container(
-              height: 120,
-              width: double.infinity,
-              color: AppColors.darkSurface,
-              child: imagePath.isNotEmpty
-                  ? Image.asset(imagePath, fit: BoxFit.cover)
-                  : const Icon(AppIcons.profile, size: 50, color: AppColors.textMuted),
-            ),
+  void _showContractorDetails(BuildContext context, ContractorProfile c) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textMuted.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(AppRadius.small),
+                    Text(
+                      'Expert Profile',
+                      style: AppTypography.title.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
-                      child: Row(
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.textPrimary),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: AppColors.darkBorder),
+              
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.star, color: AppColors.warning, size: 12),
-                          const SizedBox(width: 2),
-                          Text(
-                            rating.toString(),
-                            style: AppTypography.caption.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.warning,
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: AppColors.primary.withOpacity(0.15),
+                            child: const Icon(Icons.person, size: 40, color: AppColors.primaryLight),
+                          ),
+                          const SizedBox(width: AppSpacing.lg),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  c.fullName,
+                                  style: AppTypography.subtitle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                if (c.businessName.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    c.businessName,
+                                    style: AppTypography.smallBody.copyWith(
+                                      color: AppColors.primaryLight,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, color: AppColors.warning, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '5.0 (Top Rated)',
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.warning,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  name,
-                  style: AppTypography.smallBody.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                      const SizedBox(height: AppSpacing.xl),
+                      
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (c.aadhaarVerified)
+                            _buildDocBadge('Aadhaar Verified', AppColors.success),
+                          if (c.panVerified)
+                            _buildDocBadge('PAN Verified', AppColors.success),
+                          if (c.gstVerified)
+                            _buildDocBadge('GST Verified', AppColors.success),
+                          _buildDocBadge('${c.yearsExperience} Years Exp', AppColors.electricBlue),
+                          _buildDocBadge('${c.projectsCompleted} Projects Done', AppColors.secondary),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      
+                      Text(
+                        'About',
+                        style: AppTypography.smallBody.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        c.bio.isNotEmpty ? c.bio : 'No profile description provided.',
+                        style: AppTypography.smallBody.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      
+                      Text(
+                        'Specialties',
+                        style: AppTypography.smallBody.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: c.categories.map((cat) {
+                          return Chip(
+                            label: Text(cat, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                            backgroundColor: AppColors.darkCard,
+                            side: const BorderSide(color: AppColors.darkBorder),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      if (c.portfolioUrls.isNotEmpty) ...[
+                        Text(
+                          'Portfolio Gallery',
+                          style: AppTypography.smallBody.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: c.portfolioUrls.length,
+                            itemBuilder: (context, i) {
+                              return Container(
+                                width: 160,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: AppColors.darkBorder),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    c.portfolioUrls[i],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, _, __) => const Center(
+                                      child: Icon(Icons.image, color: AppColors.textMuted),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+                      ],
+                    ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '$role • $exp',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              ),
+              
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: const BoxDecoration(
+                  color: AppColors.darkCard,
+                  border: Border(top: BorderSide(color: AppColors.darkBorder)),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
+                child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(AppRadius.small),
-                      ),
-                      child: Text(
-                        'VERIFIED',
-                        style: AppTypography.caption.copyWith(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.phone, color: AppColors.textPrimary),
+                        label: Text(c.phone.isNotEmpty ? c.phone : 'No Phone', style: const TextStyle(color: AppColors.textPrimary)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.darkBorder),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.electricBlue.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(AppRadius.small),
-                      ),
-                      child: Text(
-                        'AVAILABLE',
-                        style: AppTypography.caption.copyWith(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.electricBlue,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          context.go('/chat_list');
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        label: const Text('Chat Now'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
                   ],
-                )
-              ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDocBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpertCard(BuildContext context, ContractorProfile contractor, String exp, double rating) {
+    return GestureDetector(
+      onTap: () => _showContractorDetails(context, contractor),
+      child: Container(
+        width: 200,
+        margin: const EdgeInsets.only(right: AppSpacing.lg, bottom: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.darkCard,
+          borderRadius: BorderRadius.circular(AppRadius.large),
+          border: Border.all(color: AppColors.darkBorder, width: 1.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+              child: Container(
+                height: 120,
+                width: double.infinity,
+                color: AppColors.darkSurface,
+                child: const Icon(AppIcons.profile, size: 50, color: AppColors.textMuted),
+              ),
             ),
-          )
-        ],
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star, color: AppColors.warning, size: 12),
+                            const SizedBox(width: 2),
+                            Text(
+                              rating.toString(),
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    contractor.fullName,
+                    style: AppTypography.smallBody.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${contractor.categories.isNotEmpty ? contractor.categories.first : "Contractor"} • $exp',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: Text(
+                          'VERIFIED',
+                          style: AppTypography.caption.copyWith(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.electricBlue.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: Text(
+                          'AVAILABLE',
+                          style: AppTypography.caption.copyWith(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.electricBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

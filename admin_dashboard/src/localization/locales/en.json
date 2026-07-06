@@ -1,0 +1,15 @@
+{
+  "appName": "Thekedar Connect",
+  "dashboardTitle": "Admin Dashboard Control Panel",
+  "welcomeMessage": "Welcome to your admin space. Manage users and opportunities here.",
+  "changeLanguage": "Change Language",
+  "currentLanguage": "Current Language",
+  "syncSuccess": "Language synchronized to database successfully",
+  "syncFailed": "Language synchronization to database failed",
+  "userManagement": "User Management",
+  "projectsOverview": "Projects Overview",
+  "settings": "Settings",
+  "logout": "Logout",
+  "saveChanges": "Save Changes",
+  "searchHint": "Search here..."
+}

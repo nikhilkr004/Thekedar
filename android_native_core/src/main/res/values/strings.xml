@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Thekedar Connect</string>
+    <string name="choose_language">Choose your language</string>
+    <string name="sync_success">Language synced successfully to cloud</string>
+    <string name="sync_failed">Failed to sync language to cloud</string>
+    <string name="dialog_title">Dynamic Localization</string>
+    <string name="dialog_message">This message updates instantly when you change language settings.</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="notification_channel_name">General Alerts</string>
+    <string name="notification_title">Welcome to Thekedar Connect!</string>
+    <string name="notification_body">Thank you for joining our platform. Tap to explore projects.</string>
+</resources>
