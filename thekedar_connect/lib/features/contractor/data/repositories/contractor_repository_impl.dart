@@ -18,10 +18,17 @@ class ContractorRepositoryImpl implements ContractorRepository {
         )
         .eq('status', 'active')
         .order('created_at', ascending: false);
-    // response is a List<dynamic>
+    
     final List<dynamic> data = response as List<dynamic>;
+    
+    // Check if contractor belongs to 'General Contractor'
+    final isGeneral = categories.any((c) => c.trim().toLowerCase() == 'general contractor' || c.trim().toLowerCase() == 'general');
+    if (isGeneral) {
+      return data.cast<Map<String, dynamic>>().toList();
+    }
+    
     return data
-        .where((p) => categories.contains(p['category']))
+        .where((p) => categories.any((c) => c.trim().toLowerCase() == (p['category'] as String).trim().toLowerCase()))
         .cast<Map<String, dynamic>>()
         .toList();
   }
