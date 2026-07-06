@@ -202,19 +202,30 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     FocusNode? prevNode,
   ) {
     return SizedBox(
-      width: 60,
-      height: 60,
+      width: 56,
+      height: 56,
       child: TextField(
         controller: controller,
         focusNode: currentNode,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         maxLength: 1,
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        style: AppTypography.title.copyWith(color: AppColors.textPrimary),
         decoration: InputDecoration(
           counterText: '',
+          filled: true,
+          fillColor: AppColors.darkSurface,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+            borderSide: const BorderSide(color: AppColors.darkBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.small),
+            borderSide: const BorderSide(color: AppColors.darkBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.small),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
           ),
           contentPadding: EdgeInsets.zero,
         ),
@@ -237,242 +248,290 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
+
     return Scaffold(
+      backgroundColor: AppColors.darkBackground,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 40),
-                const Icon(Icons.handyman, size: 80, color: Colors.blue),
-                const SizedBox(height: 24),
-                const Text(
-                  'Welcome to Thekedar Connect',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Sign in to post projects or find leads',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                
-                // Segmented Selector Tab
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() {
-                            _authMethod = 'phone';
-                            _otpSent = false;
-                          }),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _authMethod == 'phone' ? Colors.white : Colors.transparent,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: _authMethod == 'phone'
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 2),
-                                      )
-                                    ]
-                                  : null,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Phone Login',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _authMethod == 'phone' ? Colors.blue : Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() {
-                            _authMethod = 'email';
-                            _otpSent = false;
-                          }),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _authMethod == 'email' ? Colors.white : Colors.transparent,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: _authMethod == 'email'
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 2),
-                                      )
-                                    ]
-                                  : null,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Email Login',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _authMethod == 'email' ? Colors.blue : Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                if (_isLoading)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else ...[
-                  // Dynamic input text field based on selected tab
-                  if (_authMethod == 'email')
-                    TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'Email Address',
-                        hintText: 'contractor@example.com',
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      enabled: !_otpSent,
-                    )
-                  else
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        labelText: 'Phone Number',
-                        hintText: '+919999999999',
-                        prefixIcon: const Icon(Icons.phone),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      enabled: !_otpSent,
-                    ),
-                  const SizedBox(height: 16),
-                  
-                  if (_otpSent) ...[
-                    const Text(
-                      'Enter 4-Digit Verification Code',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildOtpBox(_otp1Controller, _otp1FocusNode, _otp2FocusNode, null),
-                        _buildOtpBox(_otp2Controller, _otp2FocusNode, _otp3FocusNode, _otp1FocusNode),
-                        _buildOtpBox(_otp3Controller, _otp3FocusNode, _otp4FocusNode, _otp2FocusNode),
-                        _buildOtpBox(_otp4Controller, _otp4FocusNode, null, _otp3FocusNode),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Timer & Resend Option row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_resendCountdown > 0)
-                          Text(
-                            'Resend code in $_resendCountdown seconds',
-                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.getResponsiveMargin(context),
+                vertical: AppSpacing.xxl,
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: isLargeScreen ? 480 : double.infinity,
+                  child: Container(
+                    decoration: isLargeScreen
+                        ? BoxDecoration(
+                            color: AppColors.darkSurface,
+                            borderRadius: AppRadius.cardBorderRadius,
+                            border: Border.all(color: AppColors.darkBorder, width: 1.5),
+                            boxShadow: AppShadows.darkCardShadow,
                           )
-                        else
-                          TextButton(
-                            onPressed: _sendOtp,
-                            child: const Text(
-                              'Resend Code',
-                              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 14),
+                        : null,
+                    padding: EdgeInsets.all(isLargeScreen ? AppSpacing.spacing32 : 0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: AppSpacing.md),
+                        // Premium Gradient Icon Circle
+                        Center(
+                          child: Container(
+                            height: 80,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              gradient: AppGradients.primaryGradient,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                )
+                              ],
+                            ),
+                            child: const Icon(
+                              AppIcons.handyman,
+                              size: 40,
+                              color: Colors.white,
                             ),
                           ),
+                        ),
+                        const SizedBox(height: AppSpacing.spacing32),
+                        Text(
+                          'Thekedar Connect',
+                          style: AppTypography.display.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'Sign in to post projects or find leads',
+                          style: AppTypography.smallBody.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSpacing.spacing32),
+                        
+                        // Premium Segmented Selector Tab
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.darkSurface,
+                            borderRadius: BorderRadius.circular(AppRadius.medium),
+                            border: Border.all(color: AppColors.darkBorder, width: 1.0),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() {
+                                    _authMethod = 'phone';
+                                    _otpSent = false;
+                                  }),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                                    decoration: BoxDecoration(
+                                      color: _authMethod == 'phone' ? AppColors.darkCard : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(AppRadius.small),
+                                      border: _authMethod == 'phone'
+                                          ? Border.all(color: AppColors.darkBorder, width: 1.0)
+                                          : null,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Phone Login',
+                                      style: AppTypography.button.copyWith(
+                                        color: _authMethod == 'phone' ? AppColors.primaryLight : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() {
+                                    _authMethod = 'email';
+                                    _otpSent = false;
+                                  }),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                                    decoration: BoxDecoration(
+                                      color: _authMethod == 'email' ? AppColors.darkCard : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(AppRadius.small),
+                                      border: _authMethod == 'email'
+                                          ? Border.all(color: AppColors.darkBorder, width: 1.0)
+                                          : null,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Email Login',
+                                      style: AppTypography.button.copyWith(
+                                        color: _authMethod == 'email' ? AppColors.primaryLight : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.spacing32),
+                        
+                        if (_isLoading)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(AppSpacing.xxl),
+                              child: CircularProgressIndicator(color: AppColors.primary),
+                            ),
+                          )
+                        else ...[
+                          // Dynamic input text field based on selected tab
+                          if (_authMethod == 'email')
+                            TextField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                              decoration: InputDecoration(
+                                labelText: 'Email Address',
+                                labelStyle: TextStyle(color: AppColors.textSecondary),
+                                hintText: 'contractor@example.com',
+                                hintStyle: TextStyle(color: AppColors.textHint),
+                                prefixIcon: const Icon(AppIcons.profile, color: AppColors.iconNormal),
+                              ),
+                              enabled: !_otpSent,
+                            )
+                          else
+                            TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                              decoration: InputDecoration(
+                                labelText: 'Phone Number',
+                                labelStyle: TextStyle(color: AppColors.textSecondary),
+                                hintText: '+919999999999',
+                                hintStyle: TextStyle(color: AppColors.textHint),
+                                prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.iconNormal),
+                              ),
+                              enabled: !_otpSent,
+                            ),
+                          const SizedBox(height: AppSpacing.lg),
+                          
+                          if (_otpSent) ...[
+                            Text(
+                              'Enter 4-Digit Verification Code',
+                              style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildOtpBox(_otp1Controller, _otp1FocusNode, _otp2FocusNode, null),
+                                _buildOtpBox(_otp2Controller, _otp2FocusNode, _otp3FocusNode, _otp1FocusNode),
+                                _buildOtpBox(_otp3Controller, _otp3FocusNode, _otp4FocusNode, _otp2FocusNode),
+                                _buildOtpBox(_otp4Controller, _otp4FocusNode, null, _otp3FocusNode),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            // Timer & Resend Option row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (_resendCountdown > 0)
+                                  Text(
+                                    'Resend code in $_resendCountdown seconds',
+                                    style: AppTypography.smallBody.copyWith(color: AppColors.textMuted),
+                                  )
+                                else
+                                  TextButton(
+                                    onPressed: _sendOtp,
+                                    child: Text(
+                                      'Resend Code',
+                                      style: AppTypography.smallBody.copyWith(
+                                        color: AppColors.primaryLight,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: AppGradients.primaryGradient,
+                                borderRadius: AppRadius.buttonBorderRadius,
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _verifyOtp,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  padding: const EdgeInsets.all(AppSpacing.lg),
+                                ),
+                                child: Text('Verify OTP', style: AppTypography.button.copyWith(color: Colors.white)),
+                              ),
+                            ),
+                          ] else ...[
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: AppGradients.primaryGradient,
+                                borderRadius: AppRadius.buttonBorderRadius,
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _sendOtp,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  padding: const EdgeInsets.all(AppSpacing.lg),
+                                ),
+                                child: Text('Send Verification Code', style: AppTypography.button.copyWith(color: Colors.white)),
+                              ),
+                            ),
+                          ],
+                          
+                          const SizedBox(height: AppSpacing.xxl),
+                          Row(
+                            children: const [
+                              Expanded(child: Divider(color: AppColors.darkDivider)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                                child: Text('OR', style: TextStyle(color: AppColors.textMuted)),
+                              ),
+                              Expanded(child: Divider(color: AppColors.darkDivider)),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.xxl),
+                          
+                          ElevatedButton.icon(
+                            onPressed: _signInWithGoogle,
+                            icon: const Icon(Icons.g_mobiledata, size: 28),
+                            label: const Text('Continue with Google'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.all(AppSpacing.lg),
+                              backgroundColor: AppColors.darkSurface,
+                              foregroundColor: AppColors.textPrimary,
+                              elevation: 0,
+                              side: const BorderSide(color: AppColors.darkBorder, width: 1.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.buttonBorderRadius,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.md),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _verifyOtp,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Verify OTP', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ] else ...[
-                    ElevatedButton(
-                      onPressed: _sendOtp,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Send Verification Code', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                  
-                  const SizedBox(height: 24),
-                  Row(
-                    children: const [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('OR', style: TextStyle(color: Colors.grey)),
-                      ),
-                      Expanded(child: Divider()),
-                    ],
                   ),
-                  const SizedBox(height: 24),
-                  
-                  ElevatedButton.icon(
-                    onPressed: _signInWithGoogle,
-                    icon: const Icon(Icons.login),
-                    label: const Text('Continue with Google'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
-                      elevation: 2,
-                      side: const BorderSide(color: Colors.grey, width: 0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+                ),
+              ),
             ),
           ),
         ),
