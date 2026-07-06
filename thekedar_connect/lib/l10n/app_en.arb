@@ -74,5 +74,25 @@
   "messageContractor": "MESSAGE CONTRACTOR",
   "@messageContractor": {
     "description": "Button to message direct hired contractor"
-  }
+  },
+  "topRatedExperts": "Top Rated Experts",
+  "seeExperts": "See Experts",
+  "customerStories": "Customer Stories",
+  "whyChooseUs": "Why Choose Us",
+  "howItWorks": "How It Works",
+  "postProject": "Post Project",
+  "connect": "Connect",
+  "build": "Build",
+  "postProjectDesc": "Describe your needs and budget in minutes.",
+  "connectDesc": "Get matched with verified local experts.",
+  "buildDesc": "Review quotes and hire the best professional.",
+  "story1": "Found a great plumber in 10 minutes. Job done perfectly!",
+  "story2": "Transparent pricing and very highly professional work!",
+  "expertProfile": "Expert Profile",
+  "about": "About",
+  "specialties": "Specialties",
+  "portfolioGallery": "Portfolio Gallery",
+  "chatNow": "Chat Now",
+  "verified": "VERIFIED",
+  "available": "AVAILABLE"
 }

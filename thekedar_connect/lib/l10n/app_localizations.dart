@@ -231,6 +231,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MESSAGE CONTRACTOR'**
   String get messageContractor;
+
+  /// No description provided for @topRatedExperts.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Rated Experts'**
+  String get topRatedExperts;
+
+  /// No description provided for @seeExperts.
+  ///
+  /// In en, this message translates to:
+  /// **'See Experts'**
+  String get seeExperts;
+
+  /// No description provided for @customerStories.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Stories'**
+  String get customerStories;
+
+  /// No description provided for @whyChooseUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Why Choose Us'**
+  String get whyChooseUs;
+
+  /// No description provided for @howItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How It Works'**
+  String get howItWorks;
+
+  /// No description provided for @postProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Project'**
+  String get postProject;
+
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
+  /// No description provided for @build.
+  ///
+  /// In en, this message translates to:
+  /// **'Build'**
+  String get build;
+
+  /// No description provided for @postProjectDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your needs and budget in minutes.'**
+  String get postProjectDesc;
+
+  /// No description provided for @connectDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get matched with verified local experts.'**
+  String get connectDesc;
+
+  /// No description provided for @buildDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Review quotes and hire the best professional.'**
+  String get buildDesc;
+
+  /// No description provided for @story1.
+  ///
+  /// In en, this message translates to:
+  /// **'Found a great plumber in 10 minutes. Job done perfectly!'**
+  String get story1;
+
+  /// No description provided for @story2.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent pricing and very highly professional work!'**
+  String get story2;
+
+  /// No description provided for @expertProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Expert Profile'**
+  String get expertProfile;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @specialties.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialties'**
+  String get specialties;
+
+  /// No description provided for @portfolioGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Portfolio Gallery'**
+  String get portfolioGallery;
+
+  /// No description provided for @chatNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Now'**
+  String get chatNow;
+
+  /// No description provided for @verified.
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFIED'**
+  String get verified;
+
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABLE'**
+  String get available;
 }
 
 class _AppLocalizationsDelegate

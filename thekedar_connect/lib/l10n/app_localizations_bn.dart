@@ -64,4 +64,65 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get messageContractor => 'MESSAGE CONTRACTOR';
+
+  @override
+  String get topRatedExperts => 'Top Rated Experts';
+
+  @override
+  String get seeExperts => 'See Experts';
+
+  @override
+  String get customerStories => 'Customer Stories';
+
+  @override
+  String get whyChooseUs => 'Why Choose Us';
+
+  @override
+  String get howItWorks => 'How It Works';
+
+  @override
+  String get postProject => 'Post Project';
+
+  @override
+  String get connect => 'Connect';
+
+  @override
+  String get build => 'Build';
+
+  @override
+  String get postProjectDesc => 'Describe your needs and budget in minutes.';
+
+  @override
+  String get connectDesc => 'Get matched with verified local experts.';
+
+  @override
+  String get buildDesc => 'Review quotes and hire the best professional.';
+
+  @override
+  String get story1 =>
+      'Found a great plumber in 10 minutes. Job done perfectly!';
+
+  @override
+  String get story2 => 'Transparent pricing and very highly professional work!';
+
+  @override
+  String get expertProfile => 'Expert Profile';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get specialties => 'Specialties';
+
+  @override
+  String get portfolioGallery => 'Portfolio Gallery';
+
+  @override
+  String get chatNow => 'Chat Now';
+
+  @override
+  String get verified => 'VERIFIED';
+
+  @override
+  String get available => 'AVAILABLE';
 }

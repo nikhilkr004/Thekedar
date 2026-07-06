@@ -64,4 +64,67 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get messageContractor => 'ठेकेदार को संदेश भेजें';
+
+  @override
+  String get topRatedExperts => 'शीर्ष रेटेड विशेषज्ञ';
+
+  @override
+  String get seeExperts => 'विशेषज्ञ देखें';
+
+  @override
+  String get customerStories => 'ग्राहकों की कहानियां';
+
+  @override
+  String get whyChooseUs => 'हमें क्यों चुनें';
+
+  @override
+  String get howItWorks => 'यह कैसे काम करता है';
+
+  @override
+  String get postProject => 'प्रोजेक्ट पोस्ट करें';
+
+  @override
+  String get connect => 'कनेक्ट करें';
+
+  @override
+  String get build => 'निर्माण करें';
+
+  @override
+  String get postProjectDesc =>
+      'कुछ ही मिनटों में अपनी आवश्यकताओं और बजट का विवरण दें।';
+
+  @override
+  String get connectDesc => 'सत्यापित स्थानीय विशेषज्ञों से मिलें।';
+
+  @override
+  String get buildDesc =>
+      'कोटेशन की समीक्षा करें और सर्वश्रेष्ठ पेशेवर को काम पर रखें।';
+
+  @override
+  String get story1 =>
+      '१० मिनट में एक बेहतरीन प्लंबर मिल गया। काम पूरी तरह से हो गया!';
+
+  @override
+  String get story2 => 'पारदर्शी मूल्य निर्धारण और अत्यधिक पेशेवर काम!';
+
+  @override
+  String get expertProfile => 'विशेषज्ञ प्रोफ़ाइल';
+
+  @override
+  String get about => 'विवरण';
+
+  @override
+  String get specialties => 'विशेषताएँ';
+
+  @override
+  String get portfolioGallery => 'पोर्टफोलियो गैलरी';
+
+  @override
+  String get chatNow => 'अभी चैट करें';
+
+  @override
+  String get verified => 'सत्यापित';
+
+  @override
+  String get available => 'उपलब्ध';
 }

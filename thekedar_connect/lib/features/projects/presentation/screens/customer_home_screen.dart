@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:thekedar_connect/l10n/app_localizations.dart';
 import '../../../../core/theme/design_system.dart';
 import '../../../contractor/presentation/providers/contractor_provider.dart';
 import '../../../contractor/presentation/models/contractor_profile.dart';
@@ -13,6 +14,7 @@ class CustomerHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isLargeScreen = screenWidth > 840;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -235,18 +237,18 @@ class CustomerHomeScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       Text(
-                        'How It Works',
+                        l10n.howItWorks,
                         style: AppTypography.subtitle.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.spacing32),
-                      _buildStepItem('1', 'Post Project', 'Describe your needs and budget in minutes.'),
+                      _buildStepItem('1', l10n.postProject, l10n.postProjectDesc),
                       const SizedBox(height: 20),
-                      _buildStepItem('2', 'Connect', 'Get matched with verified local experts.'),
+                      _buildStepItem('2', l10n.connect, l10n.connectDesc),
                       const SizedBox(height: 20),
-                      _buildStepItem('3', 'Build', 'Review quotes and hire the best professional.'),
+                      _buildStepItem('3', l10n.build, l10n.buildDesc),
                     ],
                   ),
                 ),
@@ -257,7 +259,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                   child: Row(
                     children: [
                       Text(
-                        'Top Rated Experts',
+                        l10n.topRatedExperts,
                         style: AppTypography.subtitle.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -267,7 +269,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                       TextButton(
                         onPressed: () {},
                         child: Text(
-                          'See Experts',
+                          l10n.seeExperts,
                           style: AppTypography.smallBody.copyWith(
                             color: AppColors.primaryLight,
                             fontWeight: FontWeight.bold,
@@ -327,11 +329,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // 5. Customer Stories
+                 // 5. Customer Stories
                 Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.spacing32, AppSpacing.lg, AppSpacing.md),
                   child: Text(
-                    'Customer Stories',
+                    l10n.customerStories,
                     style: AppTypography.subtitle.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -345,8 +347,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.only(left: AppSpacing.lg),
                     children: [
-                      _buildStoryCard('Found a great plumber in 10 minutes. Job done perfectly!', 'Ananya R.'),
-                      _buildStoryCard('Transparent pricing and very highly professional work!', 'Samir K.'),
+                      _buildStoryCard(l10n.story1, 'Ananya R.'),
+                      _buildStoryCard(l10n.story2, 'Samir K.'),
                     ],
                   ),
                 ),
@@ -356,7 +358,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.spacing32, AppSpacing.lg, AppSpacing.lg),
                   child: Center(
                     child: Text(
-                      'Why Choose Us',
+                      l10n.whyChooseUs,
                       style: AppTypography.subtitle.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -538,6 +540,7 @@ class CustomerHomeScreen extends ConsumerWidget {
   }
 
   void _showContractorDetails(BuildContext context, ContractorProfile c) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -570,7 +573,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Expert Profile',
+                      l10n.expertProfile,
                       style: AppTypography.title.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -627,7 +630,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                                     const Icon(Icons.star, color: AppColors.warning, size: 16),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '5.0 (Top Rated)',
+                                      '5.0 (${l10n.topRatedExperts})',
                                       style: AppTypography.caption.copyWith(
                                         color: AppColors.warning,
                                         fontWeight: FontWeight.bold,
@@ -647,11 +650,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                         runSpacing: 8,
                         children: [
                           if (c.aadhaarVerified)
-                            _buildDocBadge('Aadhaar Verified', AppColors.success),
+                            _buildDocBadge('Aadhaar ${l10n.verified}', AppColors.success),
                           if (c.panVerified)
-                            _buildDocBadge('PAN Verified', AppColors.success),
+                            _buildDocBadge('PAN ${l10n.verified}', AppColors.success),
                           if (c.gstVerified)
-                            _buildDocBadge('GST Verified', AppColors.success),
+                            _buildDocBadge('GST ${l10n.verified}', AppColors.success),
                           _buildDocBadge('${c.yearsExperience} Years Exp', AppColors.electricBlue),
                           _buildDocBadge('${c.projectsCompleted} Projects Done', AppColors.secondary),
                         ],
@@ -659,7 +662,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.xl),
                       
                       Text(
-                        'About',
+                        l10n.about,
                         style: AppTypography.smallBody.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -676,7 +679,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.xl),
                       
                       Text(
-                        'Specialties',
+                        l10n.specialties,
                         style: AppTypography.smallBody.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -699,7 +702,7 @@ class CustomerHomeScreen extends ConsumerWidget {
 
                       if (c.portfolioUrls.isNotEmpty) ...[
                         Text(
-                          'Portfolio Gallery',
+                          l10n.portfolioGallery,
                           style: AppTypography.smallBody.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -768,7 +771,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                           context.go('/chat_list');
                         },
                         icon: const Icon(Icons.chat_bubble_outline),
-                        label: const Text('Chat Now'),
+                        label: Text(l10n.chatNow),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -807,6 +810,7 @@ class CustomerHomeScreen extends ConsumerWidget {
   }
 
   Widget _buildExpertCard(BuildContext context, ContractorProfile contractor, String exp, double rating) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => _showContractorDetails(context, contractor),
       child: Container(
@@ -884,7 +888,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: Text(
-                          'VERIFIED',
+                          l10n.verified,
                           style: AppTypography.caption.copyWith(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
@@ -900,7 +904,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: Text(
-                          'AVAILABLE',
+                          l10n.available,
                           style: AppTypography.caption.copyWith(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
