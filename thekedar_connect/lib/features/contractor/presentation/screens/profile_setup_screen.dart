@@ -644,7 +644,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: const AppColors.primary, width: 3),
+                            border: Border.all(color: AppColors.primary, width: 3),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.08),
@@ -678,8 +678,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const AppColors.success.withOpacity(0.12),
-                          border: Border.all(color: const AppColors.success.withOpacity(0.2)),
+                          color: AppColors.success.withOpacity(0.12),
+                          border: Border.all(color: AppColors.success.withOpacity(0.2)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -699,7 +699,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const AppColors.darkDivider,
+                      color: AppColors.darkDivider,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -720,7 +720,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const AppColors.darkDivider,
+                      color: AppColors.darkDivider,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -753,7 +753,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const AppColors.primaryLight.withValues(alpha: 0.2),
+                    color: AppColors.primaryLight.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -766,19 +766,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColors.darkCard24,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.24),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.darkCard, size: 20),
+                        child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'WALLET BALANCE',
-                            style: TextStyle(color: AppColors.darkCard70, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                           const SizedBox(height: 2),
                           Consumer(
@@ -787,14 +787,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               return balanceAsync.when(
                                 data: (balance) => Text(
                                   '${balance ?? 0} Credits',
-                                  style: const TextStyle(color: AppColors.darkCard, fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 loading: () => const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.darkCard),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 ),
-                                error: (_, __) => const Text('0 Credits', style: TextStyle(color: AppColors.darkCard, fontSize: 16, fontWeight: FontWeight.bold)),
+                                error: (_, __) => const Text('0 Credits', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                               );
                             },
                           ),
@@ -805,8 +805,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ElevatedButton(
                     onPressed: () => context.push('/wallet'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.darkCard,
-                      foregroundColor: const AppColors.primaryLight,
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.primary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -836,7 +836,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     label: 'WhatsApp',
                     icon: Icons.chat_bubble_outline,
                     iconColor: const Color(0xFF22C55E),
-                    bgColor: const AppColors.success.withOpacity(0.2),
+                    bgColor: AppColors.success.withOpacity(0.2),
                     onTap: () => _launchSocialLink('whatsapp', profile.socialLinks['whatsapp'] ?? ''),
                   ),
                   _buildMockupSocialBtn(
@@ -849,15 +849,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   _buildMockupSocialBtn(
                     label: 'Facebook',
                     icon: Icons.public_outlined,
-                    iconColor: const AppColors.primary,
-                    bgColor: const AppColors.primary.withOpacity(0.2),
+                    iconColor: AppColors.primary,
+                    bgColor: AppColors.primary.withOpacity(0.2),
                     onTap: () => _launchSocialLink('facebook', profile.socialLinks['facebook'] ?? ''),
                   ),
                   _buildMockupSocialBtn(
                     label: 'Website',
                     icon: Icons.language_outlined,
-                    iconColor: const AppColors.textPrimary,
-                    bgColor: const AppColors.darkBorder,
+                    iconColor: AppColors.textPrimary,
+                    bgColor: AppColors.darkBorder,
                     onTap: () => _launchSocialLink('website', profile.socialLinks['website'] ?? ''),
                   ),
                 ],
@@ -902,7 +902,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               decoration: BoxDecoration(
                 color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const AppColors.darkBorder),
+                border: Border.all(color: AppColors.darkBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1063,7 +1063,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               decoration: BoxDecoration(
                 color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const AppColors.darkBorder),
+                border: Border.all(color: AppColors.darkBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1072,7 +1072,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.success.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
@@ -1119,7 +1119,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   Center(
                     child: Text(
                       'PARTNERING SINCE MAY 2012',
-                      style: TextStyle(fontSize: 10, color: const AppColors.textMuted, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                     ),
                   ),
                 ],
@@ -1132,7 +1132,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               decoration: BoxDecoration(
                 color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const AppColors.darkBorder),
+                border: Border.all(color: AppColors.darkBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1264,7 +1264,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       decoration: BoxDecoration(
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const AppColors.darkBorder),
+        border: Border.all(color: AppColors.darkBorder),
       ),
       child: Material(
         color: Colors.transparent,
@@ -1302,7 +1302,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       decoration: BoxDecoration(
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const AppColors.darkBorder),
+        border: Border.all(color: AppColors.darkBorder),
       ),
       child: Column(
         children: [
@@ -1326,7 +1326,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.darkCard,
-        border: Border.all(color: const AppColors.darkBorder),
+        border: Border.all(color: AppColors.darkBorder),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -1374,12 +1374,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               children: [
                 Text(
                   category,
-                  style: const TextStyle(color: AppColors.darkCard70, fontSize: 8, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 8, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   title,
-                  style: const TextStyle(color: AppColors.darkCard, fontSize: 15, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -1556,7 +1556,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1587,7 +1587,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                   ),
                                   child: CircleAvatar(
                                     radius: 46,
-                                    backgroundColor: const AppColors.darkSurface,
+                                    backgroundColor: AppColors.darkSurface,
                                     backgroundImage: _profilePhotoFile != null
                                         ? FileImage(_profilePhotoFile!)
                                         : (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
@@ -1686,7 +1686,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1826,7 +1826,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1931,7 +1931,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2044,7 +2044,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2130,7 +2130,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               decoration: BoxDecoration(
                                 color: AppColors.darkBackground,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const AppColors.darkBorder),
+                                border: Border.all(color: AppColors.darkBorder),
                               ),
                               child: Row(
                                 children: [
@@ -2177,7 +2177,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         icon: const Icon(Icons.add_photo_alternate_outlined),
                         label: const Text('Add Project Images', style: TextStyle(fontWeight: FontWeight.bold)),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const AppColors.primaryLight,
+                          foregroundColor: AppColors.primaryLight,
                           side: const BorderSide(color: AppColors.primaryLight),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -2196,7 +2196,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       : ElevatedButton.icon(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const AppColors.primary, // Royal Blue
+                            backgroundColor: AppColors.primary, // Royal Blue
                             foregroundColor: AppColors.darkCard,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -2222,7 +2222,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2248,7 +2248,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const AppColors.darkBorder),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2272,7 +2272,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         icon: const Icon(Icons.headset_mic_outlined, size: 16),
                         label: const Text('Chat with Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const AppColors.primary,
+                          foregroundColor: AppColors.primary,
                           side: const BorderSide(color: AppColors.primary, width: 1.2),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -2313,7 +2313,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: const AppColors.darkDivider,
+                      backgroundColor: AppColors.darkDivider,
                       child: ClipOval(
                         child: _profilePhotoUrl != null
                             ? Image.network(_profilePhotoUrl!, width: 44, height: 44, fit: BoxFit.cover)
@@ -2370,14 +2370,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     required String status,
     required VoidCallback onUploadTap,
   }) {
-    Color statusColor = const AppColors.textMuted;
-    Color statusBg = const AppColors.darkDivider;
+    Color statusColor = AppColors.textMuted;
+    Color statusBg = AppColors.darkDivider;
     if (status == 'VERIFIED') {
-      statusColor = const AppColors.success;
-      statusBg = const AppColors.success.withOpacity(0.15);
+      statusColor = AppColors.success;
+      statusBg = AppColors.success.withOpacity(0.15);
     } else if (status == 'OPTIONAL') {
-      statusColor = const AppColors.textSecondary;
-      statusBg = const AppColors.darkDivider;
+      statusColor = AppColors.textSecondary;
+      statusBg = AppColors.darkDivider;
     }
 
     return Column(
@@ -2389,7 +2389,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const AppColors.darkSurface,
+                color: AppColors.darkSurface,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.credit_card_outlined, color: AppColors.primary, size: 18),
@@ -2433,7 +2433,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               child: ElevatedButton(
                 onPressed: onUploadTap,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const AppColors.primaryLight,
+                  backgroundColor: AppColors.primaryLight,
                   foregroundColor: AppColors.darkCard,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -2541,7 +2541,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.darkCard,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const AppColors.darkBorder),
+                        border: Border.all(color: AppColors.darkBorder),
                       ),
                       child: Column(
                         children: [
@@ -2556,7 +2556,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                 ),
                                 child: CircleAvatar(
                                   radius: 46,
-                                  backgroundColor: const AppColors.darkSurface,
+                                  backgroundColor: AppColors.darkSurface,
                                   backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
                                   child: photoUrl.isEmpty
                                       ? Text(
@@ -2585,9 +2585,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const AppColors.darkSurface,
+                              color: AppColors.darkSurface,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const AppColors.primary.withOpacity(0.2)),
+                              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -2648,7 +2648,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.darkCard,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const AppColors.darkBorder),
+                        border: Border.all(color: AppColors.darkBorder),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2679,7 +2679,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.darkCard,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const AppColors.darkBorder),
+                        border: Border.all(color: AppColors.darkBorder),
                       ),
                       child: Column(
                         children: [
@@ -2694,9 +2694,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     // 5. Sign Out Box
                     Container(
                       decoration: BoxDecoration(
-                        color: const AppColors.error.withOpacity(0.12),
+                        color: AppColors.error.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const AppColors.error.withOpacity(0.2)),
+                        border: Border.all(color: AppColors.error.withOpacity(0.2)),
                       ),
                       child: ListTile(
                         leading: const Icon(Icons.logout, color: AppColors.error),
@@ -2722,7 +2722,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         icon: const Icon(Icons.cached, size: 16),
                         label: const Text('Update Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const AppColors.primaryLight,
+                          backgroundColor: AppColors.primaryLight,
                           foregroundColor: AppColors.darkCard,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -2786,7 +2786,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ),
                         child: CircleAvatar(
                           radius: 46,
-                          backgroundColor: const AppColors.darkSurface,
+                          backgroundColor: AppColors.darkSurface,
                           backgroundImage: _profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
                               ? NetworkImage(_profilePhotoUrl!)
                               : null,
@@ -2940,9 +2940,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const AppColors.darkSurface,
+                color: AppColors.darkSurface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const AppColors.primary.withOpacity(0.2)),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2995,7 +2995,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       icon: const Icon(Icons.check_circle_outline, size: 16),
                       label: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const AppColors.primaryLight,
+                        backgroundColor: AppColors.primaryLight,
                         foregroundColor: AppColors.darkCard,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -3027,7 +3027,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       decoration: BoxDecoration(
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const AppColors.darkBorder),
+        border: Border.all(color: AppColors.darkBorder),
       ),
       child: Row(
         children: [
@@ -3037,7 +3037,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               color: AppColors.darkSurface,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const AppColors.primaryLight, size: 20),
+            child: Icon(icon, color: AppColors.primaryLight, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3066,8 +3066,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundColor: const AppColors.darkSurface,
-          child: Icon(icon, color: const AppColors.primaryLight, size: 18),
+          backgroundColor: AppColors.darkSurface,
+          child: Icon(icon, color: AppColors.primaryLight, size: 18),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -3092,7 +3092,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
   Widget _buildMenuTile(IconData icon, String title) {
     return ListTile(
-      leading: Icon(icon, color: const AppColors.textSecondary),
+      leading: Icon(icon, color: AppColors.textSecondary),
       title: Text(
         title,
         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),

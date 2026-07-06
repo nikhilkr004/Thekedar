@@ -497,7 +497,7 @@ class LeadsFeedScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
+        borderRadius: BorderRadius.circular(AppRadius.small),
         border: Border.all(color: AppColors.darkBorder),
       ),
       child: Text(

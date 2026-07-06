@@ -327,7 +327,7 @@ class _ContractorProfileDetailsScreenState extends State<ContractorProfileDetail
                             const Icon(Icons.navigation, color: AppColors.primaryLight, size: 12),
                             const SizedBox(width: 6),
                             Text(
-                              '${widget.contractor[\'service_radius_km\'] ?? 25}km Radius',
+                              '${widget.contractor['service_radius_km'] ?? 25}km Radius',
                               style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                             ),
                           ],
@@ -792,6 +792,51 @@ class _ContractorProfileDetailsScreenState extends State<ContractorProfileDetail
         ),
       ),
     );
+  }
+
+  Future<void> _launchSocialLink(String platform, String value) async {
+    if (value.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No $platform link is provided by this contractor.')),
+        );
+      }
+      return;
+    }
+
+    Uri uri;
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      uri = Uri.parse(value);
+    } else {
+      switch (platform.toLowerCase()) {
+        case 'whatsapp':
+          final clean = value.replaceAll(RegExp(r'[^0-9]'), '');
+          uri = Uri.parse('https://wa.me/$clean');
+          break;
+        case 'instagram':
+          uri = Uri.parse('https://instagram.com/$value');
+          break;
+        case 'facebook':
+          uri = Uri.parse('https://facebook.com/$value');
+          break;
+        default:
+          uri = Uri.parse('https://$value');
+      }
+    }
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch URL';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open link: $value')),
+        );
+      }
+    }
   }
 
   Widget _buildMockupSocialBtn({

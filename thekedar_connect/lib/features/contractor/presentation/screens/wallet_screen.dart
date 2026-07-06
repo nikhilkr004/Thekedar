@@ -305,7 +305,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.spacing28),
+                        const SizedBox(height: 28),
 
                         // 2. Buy More Credits Section
                         Text(
@@ -318,7 +318,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                         _buildCreditPackageCard('100 Credits', '₹ 900', Icons.payments_outlined, false),
                         _buildCreditPackageCard('200 Credits', '₹ 1700', Icons.stars_outlined, true),
 
-                        const SizedBox(height: AppSpacing.spacing28),
+                        const SizedBox(height: 28),
 
                         // 3. Recent Activity Section
                         Row(
