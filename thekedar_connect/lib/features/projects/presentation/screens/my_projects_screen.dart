@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../contractor/presentation/screens/contractor_profile_details_screen.dart';
 import '../../../../widgets/shimmer_placeholder.dart';
+import '../../../../core/theme/design_system.dart';
 
 class MyProjectsScreen extends ConsumerStatefulWidget {
   const MyProjectsScreen({super.key});
@@ -18,312 +19,320 @@ class MyProjectsScreen extends ConsumerStatefulWidget {
 
 class _MyProjectsScreenState extends ConsumerState<MyProjectsScreen> {
   String _activeFilter = 'All Projects';
-
   final List<String> _filters = ['All Projects', 'Active', 'Pending', 'Completed'];
 
   @override
   Widget build(BuildContext context) {
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    debugPrint('MyProjectsScreen debug: userId = $userId');
     if (userId == null) {
-      return const Scaffold(body: Center(child: Text('Not logged in')));
+      return const Scaffold(
+        backgroundColor: AppColors.darkBackground,
+        body: Center(
+          child: Text('Not logged in', style: TextStyle(color: AppColors.textPrimary)),
+        ),
+      );
     }
 
     final projectsAsync = ref.watch(customerProjectsProvider(userId));
-    debugPrint('MyProjectsScreen debug: projectsAsync = $projectsAsync');
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 840;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.darkSurface,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'My Projects',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
+          style: AppTypography.title.copyWith(
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
-            fontSize: 20,
           ),
         ),
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Color(0xFF64748B)),
+            icon: const Icon(Icons.search, color: AppColors.textPrimary),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+            icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Horizontal Status Filters
-          Container(
-            height: 48,
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16),
-              itemCount: _filters.length,
-              itemBuilder: (context, index) {
-                final filter = _filters[index];
-                final isSelected = _activeFilter == filter;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(
-                      filter,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF64748B),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF0284C7),
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    checkmarkColor: Colors.white,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          _activeFilter = filter;
-                        });
-                      }
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 2. Projects List builder
-          Expanded(
-            child: projectsAsync.when(
-              data: (projects) {
-                final filteredProjects = projects.where((p) {
-                  final status = (p['status'] ?? 'active').toString().toLowerCase();
-                  if (_activeFilter == 'All Projects') return true;
-                  if (_activeFilter == 'Active') return status == 'active';
-                  if (_activeFilter == 'Pending') return status == 'pending';
-                  if (_activeFilter == 'Completed') return status == 'completed';
-                  return true;
-                }).toList();
-
-                if (filteredProjects.isEmpty) {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      ref.invalidate(customerProjectsProvider(userId));
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.6,
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.assignment_late_outlined, size: 64, color: Colors.blueGrey.shade300),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No $_activeFilter found',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(customerProjectsProvider(userId));
-                  },
-                  child: ListView.builder(
-                    itemCount: filteredProjects.length,
-                    padding: const EdgeInsets.all(16),
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 1024 : double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Horizontal Status Filters
+              Container(
+                height: 56,
+                color: AppColors.darkSurface,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: AppSpacing.lg),
+                  itemCount: _filters.length,
                   itemBuilder: (context, index) {
-                    final p = filteredProjects[index];
-                    final status = (p['status'] ?? 'active').toString();
-                    final category = p['category'] ?? 'General';
-                    final city = p['city'] ?? 'Unknown';
-                    final title = p['title'] ?? 'Untitled Project';
-
-                    Color statusColor = const Color(0xFF0284C7);
-                    Color statusBg = const Color(0xFFE0F2FE);
-                    if (status.toLowerCase() == 'completed') {
-                      statusColor = const Color(0xFF059669);
-                      statusBg = const Color(0xFFD1FAE5);
-                    } else if (status.toLowerCase() == 'pending') {
-                      statusColor = const Color(0xFFD97706);
-                      statusBg = const Color(0xFFFEF3C7);
-                    }
-
-                    IconData categoryIcon = Icons.home_repair_service;
-                    if (category.toLowerCase() == 'plumber') {
-                      categoryIcon = Icons.plumbing;
-                    } else if (category.toLowerCase() == 'electrician') {
-                      categoryIcon = Icons.electrical_services;
-                    } else if (category.toLowerCase() == 'painter') {
-                      categoryIcon = Icons.format_paint;
-                    } else if (category.toLowerCase() == 'carpenter') {
-                      categoryIcon = Icons.handyman;
-                    } else if (category.toLowerCase() == 'mason') {
-                      categoryIcon = Icons.architecture;
-                    }
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.015),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProjectDetailsScreen(project: p),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(24),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(categoryIcon, color: const Color(0xFF0284C7), size: 20),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: statusBg,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      status.toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: statusColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF94A3B8)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '$city, India',
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-                              const SizedBox(height: 14),
-                              Row(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: const [
-                                      Text(
-                                        'Budget',
-                                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Est. Standard',
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                                      ),
-                                    ],
-                                  ),
-                                  const Spacer(),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      const Text(
-                                        'Quotes',
-                                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      FutureBuilder<int>(
-                                        future: Supabase.instance.client
-                                            .from('applications')
-                                            .select('id')
-                                            .eq('project_id', p['id'])
-                                            .then((value) => value.length),
-                                        builder: (context, snapshot) {
-                                          final count = snapshot.data ?? 0;
-                                          final countStr = count < 10 ? '0$count' : '$count';
-                                          return Text(
-                                            '$countStr Received',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0F172A),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
+                    final filter = _filters[index];
+                    final isSelected = _activeFilter == filter;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: ChoiceChip(
+                        label: Text(
+                          filter,
+                          style: AppTypography.caption.copyWith(
+                            color: isSelected ? Colors.white : AppColors.textSecondary,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                        selected: isSelected,
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.darkCard,
+                        checkmarkColor: Colors.white,
+                        side: BorderSide(
+                          color: isSelected ? Colors.transparent : AppColors.darkBorder,
+                          width: 1.0,
+                        ),
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() {
+                              _activeFilter = filter;
+                            });
+                          }
+                        },
                       ),
                     );
                   },
                 ),
-              );
-            },
-              loading: () => const ProjectListSkeleton(),
-              error: (e, st) => Center(child: Text('Error: $e')),
-            ),
-          ),
-        ],
-      ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
 
+              // 2. Projects List builder
+              Expanded(
+                child: projectsAsync.when(
+                  data: (projects) {
+                    final filteredProjects = projects.where((p) {
+                      final status = (p['status'] ?? 'active').toString().toLowerCase();
+                      if (_activeFilter == 'All Projects') return true;
+                      if (_activeFilter == 'Active') return status == 'active';
+                      if (_activeFilter == 'Pending') return status == 'pending';
+                      if (_activeFilter == 'Completed') return status == 'completed';
+                      return true;
+                    }).toList();
+
+                    if (filteredProjects.isEmpty) {
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          ref.invalidate(customerProjectsProvider(userId));
+                        },
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.assignment_late_outlined, size: 64, color: AppColors.textMuted),
+                                const SizedBox(height: AppSpacing.lg),
+                                Text(
+                                  'No $_activeFilter found',
+                                  style: AppTypography.subtitle.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(customerProjectsProvider(userId));
+                      },
+                      child: ListView.builder(
+                        itemCount: filteredProjects.length,
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemBuilder: (context, index) {
+                          final p = filteredProjects[index];
+                          final status = (p['status'] ?? 'active').toString();
+                          final category = p['category'] ?? 'General';
+                          final city = p['city'] ?? 'Unknown';
+                          final title = p['title'] ?? 'Untitled Project';
+
+                          Color statusColor = AppColors.primaryLight;
+                          Color statusBg = AppColors.primary.withOpacity(0.12);
+                          if (status.toLowerCase() == 'completed') {
+                            statusColor = AppColors.success;
+                            statusBg = AppColors.success.withOpacity(0.12);
+                          } else if (status.toLowerCase() == 'pending') {
+                            statusColor = AppColors.warning;
+                            statusBg = AppColors.warning.withOpacity(0.12);
+                          }
+
+                          IconData categoryIcon = Icons.home_repair_service;
+                          if (category.toLowerCase() == 'plumber') {
+                            categoryIcon = Icons.plumbing;
+                          } else if (category.toLowerCase() == 'electrician') {
+                            categoryIcon = Icons.electrical_services;
+                          } else if (category.toLowerCase() == 'painter') {
+                            categoryIcon = Icons.format_paint;
+                          } else if (category.toLowerCase() == 'carpenter') {
+                            categoryIcon = AppIcons.handyman;
+                          } else if (category.toLowerCase() == 'mason') {
+                            categoryIcon = Icons.architecture;
+                          }
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.darkCard,
+                              borderRadius: BorderRadius.circular(AppRadius.large),
+                              border: Border.all(color: AppColors.darkBorder, width: 1.0),
+                              boxShadow: AppShadows.darkCardShadow,
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProjectDetailsScreen(project: p),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(AppRadius.large),
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSpacing.xxl),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(AppSpacing.sm),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(AppRadius.small),
+                                          ),
+                                          child: Icon(categoryIcon, color: AppColors.primaryLight, size: 20),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: statusBg,
+                                            borderRadius: BorderRadius.circular(AppRadius.small),
+                                          ),
+                                          child: Text(
+                                            status.toUpperCase(),
+                                            style: AppTypography.caption.copyWith(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: statusColor,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.lg),
+                                    Text(
+                                      title,
+                                      style: AppTypography.subtitle.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textMuted),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '$city, India',
+                                          style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.lg),
+                                    const Divider(height: 1, thickness: 1, color: AppColors.darkDivider),
+                                    const SizedBox(height: AppSpacing.md),
+                                    Row(
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Budget',
+                                              style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Est. Standard',
+                                              style: AppTypography.body.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const Spacer(),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              'Quotes',
+                                              style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            FutureBuilder<int>(
+                                              future: Supabase.instance.client
+                                                  .from('applications')
+                                                  .select('id')
+                                                  .eq('project_id', p['id'])
+                                                  .then((value) => value.length),
+                                              builder: (context, snapshot) {
+                                                final count = snapshot.data ?? 0;
+                                                final countStr = count < 10 ? '0$count' : '$count';
+                                                return Text(
+                                                  '$countStr Received',
+                                                  style: AppTypography.body.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.textPrimary,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const ProjectListSkeleton(),
+                  error: (e, st) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/post_project'),
-        backgroundColor: const Color(0xFF0284C7),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -352,13 +361,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     _fetchReadableAddress();
   }
 
-  // Parse GPS coordinates automatically to a human-readable city address
   Future<void> _fetchReadableAddress() async {
     final rawAddress = widget.project['address_text'] ?? '';
     if (rawAddress.startsWith('Lat:')) {
       setState(() => _isGeocoding = true);
       try {
-        // Parse "Lat: 28.594001, Lon: 76.974694"
         final cleanString = rawAddress.replaceAll('Lat:', '').replaceAll('Lon:', '').trim();
         final parts = cleanString.split(',');
         if (parts.length == 2) {
@@ -374,7 +381,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           }
         }
       } catch (e) {
-        // Fallback to coordinates if geocoding yields an error
         setState(() {
           _readableAddress = rawAddress;
         });
@@ -394,9 +400,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final category = widget.project['category'] ?? 'Construction';
     final city = widget.project['city'] ?? 'Location';
     final desc = widget.project['description'] ?? '';
-    final status = (widget.project['status'] ?? 'active').toString().toUpperCase();
 
-    // 1. Parse PDF and Image URLs dynamically from description metadata
+    // Parse drawing PDF
     String? pdfUrl;
     final pdfMatch = RegExp(r'\[Drawing PDF URL:\s*(https?://[^\s\]]+)').firstMatch(desc);
     if (pdfMatch != null) {
@@ -410,25 +415,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       imageUrls = rawUrls.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     }
 
-    final hasPdf = pdfUrl != null || desc.contains('[Drawing Attachment: Selected]') || desc.contains('[Drawing Attachment: ');
-    final hasImages = imageUrls.isNotEmpty || desc.contains('photos selected');
-    int imageCount = imageUrls.isNotEmpty ? imageUrls.length : 0;
-    if (imageCount == 0 && hasImages) {
-      try {
-        final matches = RegExp(r'\[Land Images:\s*(\d+)\s*photos').firstMatch(desc);
-        if (matches != null) {
-          imageCount = int.parse(matches.group(1)!);
-        }
-      } catch (_) {}
-    }
-
-    // 2. Clean up raw metadata blocks from description for a premium UI
-    String? plotArea;
-    final plotMatch = RegExp(r'\[Plot Area:\s*([^\s\]]+)\s*(?:sq\.ft|Sq\.ft)?\]').firstMatch(desc);
-    if (plotMatch != null) {
-      plotArea = plotMatch.group(1);
-    }
-
     String cleanDesc = desc;
     cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Plot Area:[^\]]+\]'), '');
     cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Drawing Attachment:[^\]]+\]'), '');
@@ -437,287 +423,288 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     cleanDesc = cleanDesc.replaceAll(RegExp(r'\[Land Image URLs:[^\]]+\]'), '');
     cleanDesc = cleanDesc.trim();
 
+    String? plotArea;
+    final plotMatch = RegExp(r'\[Plot Area:\s*([^\s\]]+)\s*(?:sq\.ft|Sq\.ft)?\]').firstMatch(desc);
+    if (plotMatch != null) {
+      plotArea = plotMatch.group(1);
+    }
+
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 840;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFDFF),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Project Details',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. HORIZONTAL SWIPABLE PHOTO GALLERY (Scrollview instead of grid!)
-            if (imageUrls.isNotEmpty)
-              Container(
-                height: 240,
-                color: const Color(0xFFF8FAFC),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: imageUrls.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      width: 320,
-                      margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 840 : double.infinity,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Photo Gallery
+                if (imageUrls.isNotEmpty)
+                  Container(
+                    height: 240,
+                    color: AppColors.darkSurface,
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      itemCount: imageUrls.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          width: 320,
+                          margin: const EdgeInsets.only(right: AppSpacing.lg),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(AppRadius.large),
+                            border: Border.all(color: AppColors.darkBorder),
+                            boxShadow: AppShadows.darkCardShadow,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadius.large - 1.0),
+                            child: Image.network(
+                              imageUrls[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(Icons.broken_image, color: AppColors.textMuted, size: 40),
+                              ),
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                // 2. Specifications Detail Card
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: AppTypography.subtitle.copyWith(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(AppRadius.small),
+                            ),
+                            child: Text(
+                              'EST. VALUE',
+                              style: AppTypography.caption.copyWith(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryLight,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(23),
-                        child: Image.network(
-                          imageUrls[index],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorBuilder: (context, error, stackTrace) => const Center(
-                            child: Icon(Icons.broken_image, color: Color(0xFF94A3B8), size: 40),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, color: AppColors.primaryLight, size: 16),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _isGeocoding
+                                ? const LinearProgressIndicator(minHeight: 2, color: AppColors.primary)
+                                : Text(
+                                    _readableAddress.isEmpty ? '$city, India' : _readableAddress,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                                  ),
                           ),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const Center(child: CircularProgressIndicator(strokeWidth: 3));
-                          },
-                        ),
+                        ],
                       ),
-                    );
-                  },
-                ),
-              ),
+                      const SizedBox(height: AppSpacing.lg),
+                      
+                      if (cleanDesc.isNotEmpty) ...[
+                        Text(
+                          cleanDesc,
+                          style: AppTypography.body.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
 
-            // 2. Primary project specification details
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 22,
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildDetailTag(category),
+                          if (plotArea != null) _buildDetailTag('$plotArea Sq.ft'),
+                          _buildDetailTag('Site Work'),
+                          _buildDetailTag('Verified Details'),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
+                      
+                      // Drawing pdf attachment link
+                      if (pdfUrl != null) ...[
+                        Text(
+                          'Attachments',
+                          style: AppTypography.subtitle.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'EST. VALUE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0284C7),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // GPS-to-Human-Address text widget (fixed text overflow layouts)
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined, color: Color(0xFF0284C7), size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: _isGeocoding
-                            ? const LinearProgressIndicator(minHeight: 2)
-                            : Text(
-                                _readableAddress.isEmpty ? '$city, India' : _readableAddress,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                              ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  
-                  // Description
-                  if (cleanDesc.isNotEmpty) ...[
-                    Text(
-                      cleanDesc,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF475569),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Tag categories chips
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildDetailTag(category),
-                      if (plotArea != null) _buildDetailTag('$plotArea Sq.ft'),
-                      _buildDetailTag('Site Work'),
-                      _buildDetailTag('Verification Done'),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // PDF at the bottom if PDF drawing is attached
-                  if (pdfUrl != null) ...[
-                    const Text(
-                      'Attachments',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    InkWell(
-                      onTap: () async {
-                        try {
-                          final uri = Uri.parse(pdfUrl!);
-                          final success = await launchUrl(uri, mode: LaunchMode.inAppWebView);
-                          if (!success) {
-                            Clipboard.setData(ClipboardData(text: pdfUrl!));
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Unable to launch PDF. Copied to clipboard!')),
-                              );
+                        const SizedBox(height: AppSpacing.md),
+                        InkWell(
+                          onTap: () async {
+                            try {
+                              final uri = Uri.parse(pdfUrl!);
+                              final success = await launchUrl(uri, mode: LaunchMode.inAppWebView);
+                              if (!success) {
+                                Clipboard.setData(ClipboardData(text: pdfUrl!));
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Copied drawing URL to clipboard!')),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              Clipboard.setData(ClipboardData(text: pdfUrl!));
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Copied link to clipboard!')),
+                                );
+                              }
                             }
+                          },
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
+                          child: Container(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.darkCard,
+                              borderRadius: BorderRadius.circular(AppRadius.medium),
+                              border: Border.all(color: AppColors.darkBorder),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.picture_as_pdf, color: AppColors.error, size: 28),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Text(
+                                    pdfUrl!.split('/').last,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                  ),
+                                ),
+                                const Icon(Icons.open_in_new, color: AppColors.primaryLight, size: 20),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxl),
+                      ],
+
+                      Text(
+                        'Quotes Received',
+                        style: AppTypography.subtitle.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: Supabase.instance.client
+                            .from('applications')
+                            .select('*, contractors(*)')
+                            .eq('project_id', widget.project['id']),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                           }
-                        } catch (e) {
-                          Clipboard.setData(ClipboardData(text: pdfUrl!));
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('PDF link copied to clipboard!')),
+                          if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.error)));
+                          }
+                          final quotes = snapshot.data ?? [];
+                          if (quotes.isEmpty) {
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(AppSpacing.xxl),
+                              decoration: BoxDecoration(
+                                color: AppColors.darkCard,
+                                borderRadius: BorderRadius.circular(AppRadius.large),
+                                border: Border.all(color: AppColors.darkBorder),
+                              ),
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.assignment_outlined, size: 48, color: AppColors.textMuted),
+                                  const SizedBox(height: AppSpacing.md),
+                                  Text(
+                                    'No quotes received yet',
+                                    style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Text(
+                                    'Contractors will review your project and bid shortly.',
+                                    textAlign: TextAlign.center,
+                                    style: AppTypography.caption.copyWith(color: AppColors.textMuted),
+                                  ),
+                                ],
+                              ),
                             );
                           }
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 28),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                pdfUrl!.split('/').last, // Show parsed filename from Supabase URL
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF334155)),
-                              ),
-                            ),
-                            const Icon(Icons.open_in_new, color: Color(0xFF0284C7), size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
 
-                  // Quotes Received
-                  const Text(
-                    'Quotes Received',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                    future: Supabase.instance.client
-                        .from('applications')
-                        .select('*, contractors(*)')
-                        .eq('project_id', widget.project['id']),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
-                      }
-                      final quotes = snapshot.data ?? [];
-                      if (quotes.isEmpty) {
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Column(
-                            children: const [
-                              Icon(Icons.assignment_outlined, size: 48, color: Color(0xFF94A3B8)),
-                              SizedBox(height: 12),
-                              Text(
-                                'No quotes received yet',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF475569)),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Contractors will review your project and bid shortly.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: quotes.length,
-                        itemBuilder: (context, index) {
-                          return _buildRealQuoteCard(context, quotes[index]);
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: quotes.length,
+                            itemBuilder: (context, index) {
+                              return _buildRealQuoteCard(context, quotes[index]);
+                            },
+                          );
                         },
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -727,12 +714,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(AppRadius.circular),
+        border: Border.all(color: AppColors.darkBorder),
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 12, color: Color(0xFF475569), fontWeight: FontWeight.w600),
+        style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -750,15 +738,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final coverMessage = quote['cover_message'] ?? '';
     final quoteId = quote['id'];
     final quoteStatus = (quote['status'] ?? 'pending').toString().toLowerCase();
-
     final contractorId = quote['contractor_id'];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+        color: AppColors.darkCard,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.darkBorder, width: 1.0),
       ),
       child: InkWell(
         onTap: () async {
@@ -778,31 +765,31 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             }
           }
         },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: const Color(0xFFE0F2FE),
-                    child: Text(businessName[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                    backgroundColor: AppColors.primary.withOpacity(0.15),
+                    child: Text(businessName[0].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryLight)),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           businessName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A)),
+                          style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
-                          '$exp • Star Rating $rating ★',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          '$exp • Rating $rating ★',
+                          style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -812,74 +799,74 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     children: [
                       Text(
                         amount,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF059669)),
+                        style: AppTypography.smallBody.copyWith(fontWeight: FontWeight.bold, color: AppColors.success),
                       ),
                       Text(
                         timeline,
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
                       ),
                     ],
                   )
                 ],
               ),
               if (coverMessage.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.darkSurface,
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                   child: Text(
                     coverMessage,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.4),
+                    style: AppTypography.caption.copyWith(color: AppColors.textSecondary, height: 1.4),
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               if (quoteStatus == 'pending')
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            // 1. Update application status
-                            await Supabase.instance.client
-                                .from('applications')
-                                .update({'status': 'hired'})
-                                .eq('id', quoteId);
-
-                            // 2. Update projects table
-                            await Supabase.instance.client
-                                .from('projects')
-                                .update({'hired_contractor_id': contractorId})
-                                .eq('id', widget.project['id']);
-
-                            setState(() {});
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quote accepted!')));
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0284C7),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          elevation: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.primaryGradient,
+                          borderRadius: AppRadius.buttonBorderRadius,
                         ),
-                        child: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              await Supabase.instance.client
+                                  .from('applications')
+                                  .update({'status': 'hired'}).eq('id', quoteId);
+
+                              await Supabase.instance.client
+                                  .from('projects')
+                                  .update({'hired_contractor_id': contractorId}).eq('id', widget.project['id']);
+
+                              setState(() {});
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quote accepted!')));
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorderRadius),
+                          ),
+                          child: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () async {
                           try {
                             await Supabase.instance.client
                                 .from('applications')
-                                .update({'status': 'rejected'})
-                                .eq('id', quoteId);
+                                .update({'status': 'rejected'}).eq('id', quoteId);
                             setState(() {});
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quote rejected!')));
                           } catch (e) {
@@ -887,10 +874,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           }
                         },
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          side: const BorderSide(color: AppColors.darkBorder),
+                          foregroundColor: AppColors.textSecondary,
+                          shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorderRadius),
                         ),
-                        child: const Text('Reject', style: TextStyle(color: Color(0xFF64748B))),
+                        child: const Text('Reject'),
                       ),
                     ),
                   ],
@@ -904,34 +892,32 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: quoteStatus == 'hired' ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
-                          borderRadius: BorderRadius.circular(8),
+                          color: quoteStatus == 'hired' ? AppColors.success.withOpacity(0.12) : AppColors.error.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: Text(
                           quoteStatus.toUpperCase(),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: quoteStatus == 'hired' ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                            color: quoteStatus == 'hired' ? AppColors.success : AppColors.error,
                           ),
                         ),
                       ),
                     ),
                     if (quoteStatus == 'hired') ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       SizedBox(
-                        height: 40,
+                        height: 48,
                         child: ElevatedButton.icon(
                           onPressed: () {
                             context.push('/chat', extra: widget.project['id']);
                           },
                           icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.white),
-                          label: const Text('Chat with Contractor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          label: const Text('Chat with Contractor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0284C7),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorderRadius),
                           ),
                         ),
                       ),
