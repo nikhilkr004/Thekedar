@@ -83,7 +83,7 @@ class AppTheme {
         elevation: AppElevation.card,
         margin: const EdgeInsets.all(AppSpacing.sm),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.darkDialog,
         elevation: AppElevation.dialog,
         shape: RoundedRectangleBorder(
@@ -170,7 +170,7 @@ class AppTheme {
         elevation: AppElevation.card,
         margin: const EdgeInsets.all(AppSpacing.sm),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.lightSurface,
         elevation: AppElevation.dialog,
         shape: RoundedRectangleBorder(
