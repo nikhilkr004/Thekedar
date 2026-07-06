@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../domain/repositories/project_repository.dart';
 
 class ProjectRepositoryImpl implements ProjectRepository {
@@ -30,7 +32,13 @@ class ProjectRepositoryImpl implements ProjectRepository {
     if (pdfDrawingFile != null) {
       try {
         final String fileName = 'drawing_${DateTime.now().millisecondsSinceEpoch}.pdf';
-        final fileBytes = await (pdfDrawingFile as File).readAsBytes();
+        Uint8List fileBytes;
+        if (pdfDrawingFile is PlatformFile) {
+          fileBytes = pdfDrawingFile.bytes ?? await File(pdfDrawingFile.path!).readAsBytes();
+        } else {
+          fileBytes = await (pdfDrawingFile as File).readAsBytes();
+        }
+
         await _supabase.storage.from('project_drawings').uploadBinary(
               '${user.id}/$fileName',
               fileBytes,
@@ -47,8 +55,13 @@ class ProjectRepositoryImpl implements ProjectRepository {
       for (int i = 0; i < landImageFiles.length; i++) {
         try {
           final String fileName = 'land_photo_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
-          final File imageFile = landImageFiles[i] as File;
-          final fileBytes = await imageFile.readAsBytes();
+          final pickedImage = landImageFiles[i];
+          Uint8List fileBytes;
+          if (pickedImage is PlatformFile) {
+            fileBytes = pickedImage.bytes ?? await File(pickedImage.path!).readAsBytes();
+          } else {
+            fileBytes = await (pickedImage as File).readAsBytes();
+          }
           
           await _supabase.storage.from('project_photos').uploadBinary(
                 '${user.id}/$fileName',

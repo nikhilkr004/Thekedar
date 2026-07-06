@@ -26,9 +26,9 @@ class _PostProjectScreenState extends ConsumerState<PostProjectScreen> {
   String _selectedTimeline = 'ASAP';
   bool _isLoading = false;
 
-  File? _pdfDrawingFile;
+  dynamic _pdfDrawingFile;
   String? _pdfFileName;
-  List<File> _landImageFiles = [];
+  List<dynamic> _landImageFiles = [];
   final ImagePicker _picker = ImagePicker();
 
   final categories = ['Mason', 'Plumber', 'Electrician', 'Painter', 'Carpenter'];
@@ -39,10 +39,11 @@ class _PostProjectScreenState extends ConsumerState<PostProjectScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
+        withData: true,
       );
-      if (result != null && result.files.single.path != null) {
+      if (result != null && result.files.isNotEmpty) {
         setState(() {
-          _pdfDrawingFile = File(result.files.single.path!);
+          _pdfDrawingFile = result.files.single;
           _pdfFileName = result.files.single.name;
         });
       }
@@ -55,14 +56,14 @@ class _PostProjectScreenState extends ConsumerState<PostProjectScreen> {
 
   Future<void> _pickMultipleLandImages() async {
     try {
-      final List<XFile> images = await _picker.pickMultiImage(
-        imageQuality: 30,
-        maxWidth: 1024,
-        maxHeight: 1024,
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.image,
+        withData: true,
       );
-      if (images.isNotEmpty) {
+      if (result != null && result.files.isNotEmpty) {
         setState(() {
-          _landImageFiles = images.map((img) => File(img.path)).toList();
+          _landImageFiles = result.files;
         });
       }
     } catch (e) {
@@ -334,7 +335,9 @@ class _PostProjectScreenState extends ConsumerState<PostProjectScreen> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(AppRadius.large - 1.0),
-                                      child: Image.file(_landImageFiles.first, fit: BoxFit.cover),
+                                      child: _landImageFiles.first.bytes != null
+                                          ? Image.memory(_landImageFiles.first.bytes!, fit: BoxFit.cover)
+                                          : Image.file(File(_landImageFiles.first.path!), fit: BoxFit.cover),
                                     ),
                                     Container(
                                       decoration: BoxDecoration(

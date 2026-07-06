@@ -1,5 +1,6 @@
 import '../../../../core/theme/design_system.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -65,12 +66,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   String? _userRole;
   bool _loadingRole = true;
 
-  // Newly Picked document files
-  File? _profilePhotoFile;
-  File? _aadhaarFile;
-  File? _panFile;
-  File? _gstFile;
-  List<File> _portfolioFiles = [];
+  // Newly Picked document files (bytes and names for web compatibility)
+  Uint8List? _profilePhotoBytes;
+  
+  Uint8List? _aadhaarBytes;
+  String? _aadhaarName;
+
+  Uint8List? _panBytes;
+  String? _panName;
+
+  Uint8List? _gstBytes;
+  String? _gstName;
+
+  List<Uint8List> _portfolioBytesList = [];
 
 
 
@@ -89,11 +97,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     _loadCustomerData();
   }
 
-  Future<File?> _compressImageFile(File file) async {
+  Future<Uint8List> _compressImageBytes(Uint8List originalBytes) async {
     try {
-      final originalBytes = await file.readAsBytes();
       final decoded = img.decodeImage(originalBytes);
-      if (decoded == null) return file;
+      if (decoded == null) return originalBytes;
       
       img.Image resized = decoded;
       if (decoded.width > 800 || decoded.height > 800) {
@@ -103,15 +110,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           resized = img.copyResize(decoded, height: 800);
         }
       }
-      
-      final compressedBytes = img.encodeJpg(resized, quality: 15);
-      final tempDir = Directory.systemTemp;
-      final tempFile = File('${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}');
-      await tempFile.writeAsBytes(compressedBytes);
-      return tempFile;
+      return img.encodeJpg(resized, quality: 15);
     } catch (e) {
       print('Compression error: $e');
-      return file;
+      return originalBytes;
     }
   }
 
@@ -120,10 +122,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       final picked = await _picker.pickImage(source: ImageSource.gallery);
       if (picked == null) return;
       setState(() => _isLoading = true);
-      final file = File(picked.path);
-      final compressed = await _compressImageFile(file);
+      
+      final bytes = await picked.readAsBytes();
+      final compressedBytes = await _compressImageBytes(bytes);
+      
       setState(() {
-        _profilePhotoFile = compressed;
+        _profilePhotoBytes = compressedBytes;
         _isLoading = false;
       });
     } catch (e) {
@@ -139,37 +143,52 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+        withData: true,
       );
-      if (result == null || result.files.single.path == null) return;
+      if (result == null || result.files.isEmpty) return;
+      final pickedFile = result.files.single;
       setState(() => _isLoading = true);
-      final file = File(result.files.single.path!);
-      final isPdf = file.path.toLowerCase().endsWith('.pdf');
+
+      final isPdf = pickedFile.name.toLowerCase().endsWith('.pdf');
       
+      Uint8List fileBytes;
+      if (pickedFile.bytes != null) {
+        fileBytes = pickedFile.bytes!;
+      } else {
+        fileBytes = await File(pickedFile.path!).readAsBytes();
+      }
+
       if (isPdf) {
         setState(() {
           if (docType == 'aadhaar') {
-            _aadhaarFile = file;
+            _aadhaarBytes = fileBytes;
+            _aadhaarName = pickedFile.name;
             _aadhaarStatus = 'SELECTED';
           } else if (docType == 'pan') {
-            _panFile = file;
+            _panBytes = fileBytes;
+            _panName = pickedFile.name;
             _panStatus = 'SELECTED';
           } else if (docType == 'gst') {
-            _gstFile = file;
+            _gstBytes = fileBytes;
+            _gstName = pickedFile.name;
             _gstStatus = 'SELECTED';
           }
           _isLoading = false;
         });
       } else {
-        final compressed = await _compressImageFile(file);
+        final compressed = await _compressImageBytes(fileBytes);
         setState(() {
           if (docType == 'aadhaar') {
-            _aadhaarFile = compressed;
+            _aadhaarBytes = compressed;
+            _aadhaarName = pickedFile.name;
             _aadhaarStatus = 'SELECTED';
           } else if (docType == 'pan') {
-            _panFile = compressed;
+            _panBytes = compressed;
+            _panName = pickedFile.name;
             _panStatus = 'SELECTED';
           } else if (docType == 'gst') {
-            _gstFile = compressed;
+            _gstBytes = compressed;
+            _gstName = pickedFile.name;
             _gstStatus = 'SELECTED';
           }
           _isLoading = false;
@@ -188,19 +207,23 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
         type: FileType.image,
+        withData: true,
       );
       if (result == null) return;
       setState(() => _isLoading = true);
       for (final fileInfo in result.files) {
-        if (fileInfo.path != null) {
-          final file = File(fileInfo.path!);
-          final compressed = await _compressImageFile(file);
-          if (compressed != null) {
-            setState(() {
-              _portfolioFiles.add(compressed);
-            });
-          }
+        Uint8List fileBytes;
+        if (fileInfo.bytes != null) {
+          fileBytes = fileInfo.bytes!;
+        } else if (fileInfo.path != null) {
+          fileBytes = await File(fileInfo.path!).readAsBytes();
+        } else {
+          continue;
         }
+        final compressed = await _compressImageBytes(fileBytes);
+        setState(() {
+          _portfolioBytesList.add(compressed);
+        });
       }
       setState(() => _isLoading = false);
     } catch (e) {
@@ -210,7 +233,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       );
     }
   }
-
   Future<void> _loadUserRole() async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -286,12 +308,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 1. Upload Profile Photo if changed
       String? profilePhotoUrl = _profilePhotoUrl;
-      if (_profilePhotoFile != null) {
+      if (_profilePhotoBytes != null) {
         final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final fileBytes = await _profilePhotoFile!.readAsBytes();
         await Supabase.instance.client.storage.from('project_photos').uploadBinary(
           '$userId/$fileName',
-          fileBytes,
+          _profilePhotoBytes!,
           fileOptions: const FileOptions(contentType: 'image/jpeg'),
         );
         profilePhotoUrl = Supabase.instance.client.storage.from('project_photos').getPublicUrl('$userId/$fileName');
@@ -299,14 +320,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 2. Upload Aadhaar Doc if changed
       String? aadhaarDocUrl = _aadhaarDocUrl;
-      if (_aadhaarFile != null) {
-        final isPdf = _aadhaarFile!.path.toLowerCase().endsWith('.pdf');
+      if (_aadhaarBytes != null) {
+        final isPdf = _aadhaarName?.toLowerCase().endsWith('.pdf') ?? false;
         final ext = isPdf ? 'pdf' : 'jpg';
         final fileName = 'aadhaar_${DateTime.now().millisecondsSinceEpoch}.$ext';
-        final fileBytes = await _aadhaarFile!.readAsBytes();
         await Supabase.instance.client.storage.from('project_drawings').uploadBinary(
           '$userId/$fileName',
-          fileBytes,
+          _aadhaarBytes!,
           fileOptions: FileOptions(contentType: isPdf ? 'application/pdf' : 'image/jpeg'),
         );
         aadhaarDocUrl = Supabase.instance.client.storage.from('project_drawings').getPublicUrl('$userId/$fileName');
@@ -314,14 +334,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 3. Upload PAN Doc if changed
       String? panDocUrl = _panDocUrl;
-      if (_panFile != null) {
-        final isPdf = _panFile!.path.toLowerCase().endsWith('.pdf');
+      if (_panBytes != null) {
+        final isPdf = _panName?.toLowerCase().endsWith('.pdf') ?? false;
         final ext = isPdf ? 'pdf' : 'jpg';
         final fileName = 'pan_${DateTime.now().millisecondsSinceEpoch}.$ext';
-        final fileBytes = await _panFile!.readAsBytes();
         await Supabase.instance.client.storage.from('project_drawings').uploadBinary(
           '$userId/$fileName',
-          fileBytes,
+          _panBytes!,
           fileOptions: FileOptions(contentType: isPdf ? 'application/pdf' : 'image/jpeg'),
         );
         panDocUrl = Supabase.instance.client.storage.from('project_drawings').getPublicUrl('$userId/$fileName');
@@ -329,14 +348,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 4. Upload GST Doc if changed
       String? gstDocUrl = _gstDocUrl;
-      if (_gstFile != null) {
-        final isPdf = _gstFile!.path.toLowerCase().endsWith('.pdf');
+      if (_gstBytes != null) {
+        final isPdf = _gstName?.toLowerCase().endsWith('.pdf') ?? false;
         final ext = isPdf ? 'pdf' : 'jpg';
         final fileName = 'gst_${DateTime.now().millisecondsSinceEpoch}.$ext';
-        final fileBytes = await _gstFile!.readAsBytes();
         await Supabase.instance.client.storage.from('project_drawings').uploadBinary(
           '$userId/$fileName',
-          fileBytes,
+          _gstBytes!,
           fileOptions: FileOptions(contentType: isPdf ? 'application/pdf' : 'image/jpeg'),
         );
         gstDocUrl = Supabase.instance.client.storage.from('project_drawings').getPublicUrl('$userId/$fileName');
@@ -344,20 +362,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 5. Upload new Portfolio/Project photos
       List<String> portfolioUrls = List.from(_portfolioUrls);
-      if (_portfolioFiles.isNotEmpty) {
-        for (int i = 0; i < _portfolioFiles.length; i++) {
+      if (_portfolioBytesList.isNotEmpty) {
+        for (int i = 0; i < _portfolioBytesList.length; i++) {
           final fileName = 'portfolio_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
-          final fileBytes = await _portfolioFiles[i].readAsBytes();
           await Supabase.instance.client.storage.from('project_photos').uploadBinary(
             '$userId/$fileName',
-            fileBytes,
+            _portfolioBytesList[i],
             fileOptions: const FileOptions(contentType: 'image/jpeg'),
           );
           final url = Supabase.instance.client.storage.from('project_photos').getPublicUrl('$userId/$fileName');
           portfolioUrls.add(url);
         }
       }
-
       // Check if contractor profile exists
       final existing = await Supabase.instance.client
           .from('contractors')
@@ -435,11 +451,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       ref.invalidate(walletBalanceProvider);
       setState(() {
         _isEditing = false;
-        _profilePhotoFile = null;
-        _aadhaarFile = null;
-        _panFile = null;
-        _gstFile = null;
-        _portfolioFiles = [];
+        _profilePhotoBytes = null;
+        _aadhaarBytes = null; _aadhaarName = null;
+        _panBytes = null; _panName = null;
+        _gstBytes = null; _gstName = null;
+        _portfolioBytesList = [];
       });
 
       if (mounted) {
@@ -1588,12 +1604,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                   child: CircleAvatar(
                                     radius: 46,
                                     backgroundColor: AppColors.darkSurface,
-                                    backgroundImage: _profilePhotoFile != null
-                                        ? FileImage(_profilePhotoFile!)
+                                    backgroundImage: _profilePhotoBytes != null
+                                        ? MemoryImage(_profilePhotoBytes!)
                                         : (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
                                             ? NetworkImage(_profilePhotoUrl!)
                                             : null) as ImageProvider?,
-                                    child: _profilePhotoFile == null && (_profilePhotoUrl == null || _profilePhotoUrl!.isEmpty)
+                                    child: _profilePhotoBytes == null && (_profilePhotoUrl == null || _profilePhotoUrl!.isEmpty)
                                         ? const Icon(Icons.person, size: 40, color: AppColors.primaryLight)
                                         : null,
                                   ),
@@ -1955,7 +1971,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         status: _panStatus,
                         onUploadTap: () => _pickDocument('pan'),
                       ),
-                      if (_panFile == null && _panDocUrl != null && _panDocUrl!.isNotEmpty) ...[
+                      if (_panBytes == null && _panDocUrl != null && _panDocUrl!.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -1967,7 +1983,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                _panDocUrl!.split('/').last,
+                                _panName ?? _panDocUrl!.split('/').last,
                                 style: const TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1984,7 +2000,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         status: _gstStatus,
                         onUploadTap: () => _pickDocument('gst'),
                       ),
-                      if (_gstFile == null && _gstDocUrl != null && _gstDocUrl!.isNotEmpty) ...[
+                      if (_gstBytes == null && _gstDocUrl != null && _gstDocUrl!.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -1996,7 +2012,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                _gstDocUrl!.split('/').last,
+                                _gstName ?? _gstDocUrl!.split('/').last,
                                 style: const TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -2013,7 +2029,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         status: _aadhaarStatus,
                         onUploadTap: () => _pickDocument('aadhaar'),
                       ),
-                      if (_aadhaarFile == null && _aadhaarDocUrl != null && _aadhaarDocUrl!.isNotEmpty) ...[
+                      if (_aadhaarBytes == null && _aadhaarDocUrl != null && _aadhaarDocUrl!.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -2025,7 +2041,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                _aadhaarDocUrl!.split('/').last,
+                                _aadhaarName ?? _aadhaarDocUrl!.split('/').last,
                                 style: const TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -2113,7 +2129,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       ],
 
                       // Render newly selected/compressed portfolio files
-                      if (_portfolioFiles.isNotEmpty) ...[
+                      if (_portfolioBytesList.isNotEmpty) ...[
                         const Text(
                           'NEWLY SELECTED PHOTOS',
                           style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
@@ -2122,7 +2138,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _portfolioFiles.length,
+                          itemCount: _portfolioBytesList.length,
                           itemBuilder: (context, index) {
                             return Container(
                               margin: const EdgeInsets.only(bottom: 10),
@@ -2136,8 +2152,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      _portfolioFiles[index],
+                                    child: Image.memory(
+                                      _portfolioBytesList[index],
                                       width: 40,
                                       height: 40,
                                       fit: BoxFit.cover,
@@ -2159,7 +2175,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                     icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
                                     onPressed: () {
                                       setState(() {
-                                        _portfolioFiles.removeAt(index);
+                                        _portfolioBytesList.removeAt(index);
                                       });
                                     },
                                   ),
@@ -2787,9 +2803,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         child: CircleAvatar(
                           radius: 46,
                           backgroundColor: AppColors.darkSurface,
-                          backgroundImage: _profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
-                              ? NetworkImage(_profilePhotoUrl!)
-                              : null,
+                          backgroundImage: _profilePhotoBytes != null
+                              ? MemoryImage(_profilePhotoBytes!)
+                              : (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
+                                  ? NetworkImage(_profilePhotoUrl!)
+                                  : null),
                           child: _profilePhotoUrl == null || _profilePhotoUrl!.isEmpty
                               ? const Icon(Icons.person, size: 40, color: AppColors.primaryLight)
                               : null,
@@ -3171,7 +3189,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               children: urls.map((u) {
                 return GestureDetector(
                   onTap: () {
-                    setState(() => _profilePhotoUrl = u);
+                    setState(() { _profilePhotoUrl = u; _profilePhotoBytes = null; });
                     Navigator.pop(context);
                   },
                   child: CircleAvatar(
