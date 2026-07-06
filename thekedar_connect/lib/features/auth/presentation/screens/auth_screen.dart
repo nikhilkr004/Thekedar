@@ -20,16 +20,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   
-  // 4-digit OTP individual controllers and focus nodes
+  // 6-digit OTP individual controllers and focus nodes
   final _otp1Controller = TextEditingController();
   final _otp2Controller = TextEditingController();
   final _otp3Controller = TextEditingController();
   final _otp4Controller = TextEditingController();
+  final _otp5Controller = TextEditingController();
+  final _otp6Controller = TextEditingController();
 
   final _otp1FocusNode = FocusNode();
   final _otp2FocusNode = FocusNode();
   final _otp3FocusNode = FocusNode();
   final _otp4FocusNode = FocusNode();
+  final _otp5FocusNode = FocusNode();
+  final _otp6FocusNode = FocusNode();
 
   // Resend Countdown Timer State
   int _resendCountdown = 0;
@@ -43,10 +47,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _otp2Controller.dispose();
     _otp3Controller.dispose();
     _otp4Controller.dispose();
+    _otp5Controller.dispose();
+    _otp6Controller.dispose();
     _otp1FocusNode.dispose();
     _otp2FocusNode.dispose();
     _otp3FocusNode.dispose();
     _otp4FocusNode.dispose();
+    _otp5FocusNode.dispose();
+    _otp6FocusNode.dispose();
     _timer?.cancel();
     super.dispose();
   }
@@ -119,11 +127,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final code = _otp1Controller.text.trim() +
         _otp2Controller.text.trim() +
         _otp3Controller.text.trim() +
-        _otp4Controller.text.trim();
+        _otp4Controller.text.trim() +
+        _otp5Controller.text.trim() +
+        _otp6Controller.text.trim();
 
-    if (code.length < 4) {
+    if (code.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the full 4-digit code')),
+        const SnackBar(content: Text('Please enter the full 6-digit code')),
       );
       return;
     }
@@ -427,7 +437,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           
                           if (_otpSent) ...[
                             Text(
-                              'Enter 4-Digit Verification Code',
+                              'Enter 6-Digit Verification Code',
                               style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
@@ -438,7 +448,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                 _buildOtpBox(_otp1Controller, _otp1FocusNode, _otp2FocusNode, null),
                                 _buildOtpBox(_otp2Controller, _otp2FocusNode, _otp3FocusNode, _otp1FocusNode),
                                 _buildOtpBox(_otp3Controller, _otp3FocusNode, _otp4FocusNode, _otp2FocusNode),
-                                _buildOtpBox(_otp4Controller, _otp4FocusNode, null, _otp3FocusNode),
+                                _buildOtpBox(_otp4Controller, _otp4FocusNode, _otp5FocusNode, _otp3FocusNode),
+                                _buildOtpBox(_otp5Controller, _otp5FocusNode, _otp6FocusNode, _otp4FocusNode),
+                                _buildOtpBox(_otp6Controller, _otp6FocusNode, null, _otp5FocusNode),
                               ],
                             ),
                             const SizedBox(height: AppSpacing.lg),
