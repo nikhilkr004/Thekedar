@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/theme/design_system.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -20,9 +20,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    // Add a small delay so the splash screen is visible
     await Future.delayed(const Duration(milliseconds: 1500));
-    
     if (!mounted) return;
     
     final session = Supabase.instance.client.auth.currentSession;
@@ -43,6 +41,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.darkBackground,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -51,27 +50,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               height: 120,
               width: 120,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  )
-                ]
+                borderRadius: BorderRadius.circular(AppRadius.large),
+                boxShadow: AppShadows.darkCardShadow,
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppRadius.large),
                 child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
               ),
             ),
-            const SizedBox(height: 24),
-            const Text(
+            const SizedBox(height: AppSpacing.xl),
+            Text(
               'Thekedar Connect',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              style: AppTypography.title.copyWith(fontSize: 24, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(),
+            const SizedBox(height: AppSpacing.xxl),
+            const CircularProgressIndicator(color: AppColors.primary),
           ],
         ),
       ),

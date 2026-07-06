@@ -13,6 +13,7 @@ import '../../../features/contractor/presentation/screens/contractor_quotes_scre
 import '../../../features/auth/presentation/providers/auth_provider.dart';
 import 'package:lottie/lottie.dart';
 import '../../../features/contractor/presentation/providers/contractor_provider.dart';
+import '../../theme/design_system.dart';
 
 final userRoleProvider = FutureProvider<String>((ref) async {
   final authState = ref.watch(authStateProvider);
@@ -82,10 +83,10 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28.0)),
-          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.large)),
+          backgroundColor: AppColors.darkDialog,
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -98,47 +99,44 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     errorBuilder: (context, error, stackTrace) => const Icon(
                       Icons.lock,
                       size: 80,
-                      color: Colors.amber,
+                      color: AppColors.warning,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 20, 
+                  style: AppTypography.subtitle.copyWith(
                     fontWeight: FontWeight.bold, 
-                    color: Color(0xFF1E293B)
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    color: AppColors.darkSurface,
+                    borderRadius: BorderRadius.circular(AppRadius.small),
+                    border: Border.all(color: AppColors.darkBorder),
                   ),
                   child: Text(
                     status,
-                    style: const TextStyle(
-                      fontSize: 11, 
+                    style: AppTypography.caption.copyWith(
                       fontWeight: FontWeight.bold, 
-                      color: Color(0xFF475569)
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14, 
-                    color: Color(0xFF64748B), 
-                    height: 1.4
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary, 
+                    height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xxl),
                 SizedBox(
                   width: double.infinity,
                   child: TextButton(
@@ -147,15 +145,15 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                       context.go('/profile_setup');
                     },
                     style: TextButton.styleFrom(
-                      backgroundColor: const Color(0xFF0284C7),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.small)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Go to Profile Setup',
-                      style: TextStyle(
+                      style: AppTypography.button.copyWith(
                         color: Colors.white, 
-                        fontWeight: FontWeight.bold
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -185,7 +183,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           break;
       }
     } else {
-      // For contractors, if they select index 0 (leads), 1 (quotes), or 2 (chat), verify status
       if (index != 3) {
         final profileAsync = ref.read(contractorProfileProvider);
         final profile = profileAsync.value;
@@ -217,7 +214,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final roleAsync = ref.watch(userRoleProvider);
-    // Watch contractor profile to keep it active and updated in the cache
     ref.watch(contractorProfileProvider);
 
     return roleAsync.when(
@@ -250,7 +246,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                 BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
               ];
 
-        // Safeguard to prevent out-of-range indices
         final safeIndex = _currentIndex < screens.length ? _currentIndex : 0;
 
         return Scaffold(
@@ -260,8 +255,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           ),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: safeIndex,
-            selectedItemColor: const Color(0xFF0284C7),
-            unselectedItemColor: const Color(0xFF64748B),
+            selectedItemColor: AppColors.primaryLight,
+            unselectedItemColor: AppColors.textMuted,
+            backgroundColor: AppColors.darkSurface,
             type: BottomNavigationBarType.fixed,
             items: navItems,
             onTap: (index) => _onTabTapped(role, index),
@@ -269,11 +265,13 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         );
       },
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: AppColors.darkBackground,
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
       ),
       error: (e, st) => Scaffold(
+        backgroundColor: AppColors.darkBackground,
         body: Center(
-          child: Text('Error resolving user role: $e', style: const TextStyle(color: Colors.red)),
+          child: Text('Error resolving user role: $e', style: const TextStyle(color: AppColors.error)),
         ),
       ),
     );

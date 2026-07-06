@@ -1,3 +1,4 @@
+import '../../../../core/theme/design_system.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -511,7 +512,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error loading profile: $e', style: const TextStyle(color: Colors.red)),
+              Text('Error loading profile: $e', style: const TextStyle(color: AppColors.error)),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => ref.invalidate(contractorProfileProvider),
@@ -529,24 +530,24 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   // -------------------------------------------------------------------
   Widget _buildPremiumProfileView(ContractorProfile profile) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: const Icon(Icons.menu, color: Color(0xFF0F172A)),
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
+        leading: const Icon(Icons.menu, color: AppColors.textPrimary),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             Text(
               'aThekedar',
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ],
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined, color: Color(0xFF0284C7)),
+            icon: const Icon(Icons.edit_outlined, color: AppColors.primaryLight),
             onPressed: () {
               // Pre-fill controllers to edit
               _fullNameController.text = profile.fullName;
@@ -586,7 +587,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             // 1. Profile Hero Section
             Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.darkCard,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
@@ -604,7 +605,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         margin: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF0284C7), Color(0xFF5B21B6)],
+                            colors: [AppColors.primaryLight, Color(0xFF5B21B6)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -624,11 +625,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: const [
-                                    CircleAvatar(radius: 3, backgroundColor: Colors.white),
+                                    CircleAvatar(radius: 3, backgroundColor: AppColors.darkCard),
                                     SizedBox(width: 5),
                                     Text(
                                       'ACTIVE',
-                                      style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      style: TextStyle(color: AppColors.darkCard, fontSize: 9, fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
@@ -643,7 +644,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF3B82F6), width: 3),
+                            border: Border.all(color: const AppColors.primary, width: 3),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.08),
@@ -654,7 +655,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           ),
                           child: CircleAvatar(
                             radius: 46,
-                            backgroundColor: Colors.white,
+                            backgroundColor: AppColors.darkCard,
                             backgroundImage: _profilePhotoUrl != null
                                 ? NetworkImage(_profilePhotoUrl!)
                                 : const AssetImage('assets/images/placeholder_profile.png') as ImageProvider,
@@ -671,22 +672,22 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     children: [
                       Text(
                         profile.fullName.isNotEmpty ? profile.fullName : 'Nikhil Kumar',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0FDF4),
-                          border: Border.all(color: const Color(0xFFDCFCE7)),
+                          color: const AppColors.success.withOpacity(0.12),
+                          border: Border.all(color: const AppColors.success.withOpacity(0.2)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: const [
-                            Icon(Icons.verified_user_outlined, color: Color(0xFF16A34A), size: 10),
+                            Icon(Icons.verified_user_outlined, color: AppColors.success, size: 10),
                             SizedBox(width: 3),
-                            Text('KYC', style: TextStyle(color: Color(0xFF16A34A), fontSize: 9, fontWeight: FontWeight.bold)),
+                            Text('KYC', style: TextStyle(color: AppColors.success, fontSize: 9, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -698,17 +699,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: const AppColors.darkDivider,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.location_on, color: Color(0xFF0284C7), size: 14),
+                        const Icon(Icons.location_on, color: AppColors.primaryLight, size: 14),
                         const SizedBox(width: 6),
                         Text(
                           profile.address.isNotEmpty ? profile.address : 'Gurgaon, Haryana',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -719,17 +720,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: const AppColors.darkDivider,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Icon(Icons.navigation, color: Color(0xFF0284C7), size: 12),
+                        Icon(Icons.navigation, color: AppColors.primaryLight, size: 12),
                         SizedBox(width: 6),
                         Text(
                           '25km Radius',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -745,14 +746,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0369A1), Color(0xFF0284C7)],
+                  colors: [AppColors.primary, AppColors.primaryLight],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0284C7).withValues(alpha: 0.2),
+                    color: const AppColors.primaryLight.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -766,10 +767,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
-                          color: Colors.white24,
+                          color: AppColors.darkCard24,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 20),
+                        child: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.darkCard, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -777,7 +778,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         children: [
                           const Text(
                             'WALLET BALANCE',
-                            style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                            style: TextStyle(color: AppColors.darkCard70, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                           const SizedBox(height: 2),
                           Consumer(
@@ -786,14 +787,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               return balanceAsync.when(
                                 data: (balance) => Text(
                                   '${balance ?? 0} Credits',
-                                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: AppColors.darkCard, fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 loading: () => const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.darkCard),
                                 ),
-                                error: (_, __) => const Text('0 Credits', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                error: (_, __) => const Text('0 Credits', style: TextStyle(color: AppColors.darkCard, fontSize: 16, fontWeight: FontWeight.bold)),
                               );
                             },
                           ),
@@ -804,8 +805,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ElevatedButton(
                     onPressed: () => context.push('/wallet'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0284C7),
+                      backgroundColor: AppColors.darkCard,
+                      foregroundColor: const AppColors.primaryLight,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -835,7 +836,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     label: 'WhatsApp',
                     icon: Icons.chat_bubble_outline,
                     iconColor: const Color(0xFF22C55E),
-                    bgColor: const Color(0xFFDCFCE7),
+                    bgColor: const AppColors.success.withOpacity(0.2),
                     onTap: () => _launchSocialLink('whatsapp', profile.socialLinks['whatsapp'] ?? ''),
                   ),
                   _buildMockupSocialBtn(
@@ -848,15 +849,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   _buildMockupSocialBtn(
                     label: 'Facebook',
                     icon: Icons.public_outlined,
-                    iconColor: const Color(0xFF3B82F6),
-                    bgColor: const Color(0xFFDBEAFE),
+                    iconColor: const AppColors.primary,
+                    bgColor: const AppColors.primary.withOpacity(0.2),
                     onTap: () => _launchSocialLink('facebook', profile.socialLinks['facebook'] ?? ''),
                   ),
                   _buildMockupSocialBtn(
                     label: 'Website',
                     icon: Icons.language_outlined,
-                    iconColor: const Color(0xFF0F172A),
-                    bgColor: const Color(0xFFE2E8F0),
+                    iconColor: const AppColors.textPrimary,
+                    bgColor: const AppColors.darkBorder,
                     onTap: () => _launchSocialLink('website', profile.socialLinks['website'] ?? ''),
                   ),
                 ],
@@ -899,26 +900,26 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: const AppColors.darkBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'SERVICE EXCELLENCE',
-                    style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0369A1), fontSize: 11, letterSpacing: 0.5),
+                    style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 11, letterSpacing: 0.5),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     profile.categories.isNotEmpty ? profile.categories.first : 'Civil Construction',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 20),
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 20),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     profile.bio.isNotEmpty ? profile.bio : 'With over a decade of dedicated service in the civil construction industry, I specialize in delivering high-quality residential and commercial projects. My approach combines traditional craftsmanship with modern project management.',
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.5),
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
                   ),
                   const SizedBox(height: 24),
 
@@ -927,7 +928,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: AppColors.darkBackground,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
@@ -935,12 +936,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       children: const [
                         Text(
                           'PROJECT BUDGET',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 0.5),
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.textMuted, letterSpacing: 0.5),
                         ),
                         SizedBox(height: 6),
                         Text(
                           '₹ 50k - ₹ 50L',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                       ],
                     ),
@@ -950,7 +951,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   // Core Specialties row
                   const Text(
                     'CORE SPECIALTIES',
-                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 0.5),
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.textMuted, letterSpacing: 0.5),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -966,7 +967,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   // Expertise list
                   const Text(
                     'Expertise & Skills',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -995,19 +996,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     children: const [
                       Text(
                         'Featured Work',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimary),
                       ),
                       SizedBox(height: 3),
                       Text(
                         'Recent architectural milestones in NCR',
-                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                        style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                       ),
                     ],
                   ),
                   TextButton.icon(
                     onPressed: () {},
-                    icon: const Text('Explore All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
-                    label: const Icon(Icons.arrow_forward, size: 14, color: Color(0xFF0284C7)),
+                    icon: const Text('Explore All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryLight)),
+                    label: const Icon(Icons.arrow_forward, size: 14, color: AppColors.primaryLight),
                   ),
                 ],
               ),
@@ -1060,9 +1061,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: const AppColors.darkBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1072,10 +1073,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
-                          color: Color(0xFFDCFCE7),
+                          color: AppColors.success.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check, color: Color(0xFF16A34A), size: 14),
+                        child: const Icon(Icons.check, color: AppColors.success, size: 14),
                       ),
                       const SizedBox(width: 8),
                       Column(
@@ -1083,11 +1084,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         children: const [
                           Text(
                             'Verified Trust',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 15),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 15),
                           ),
                           Text(
                             'PLATFORM AUTHENTICATED',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), fontSize: 9),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMuted, fontSize: 9),
                           ),
                         ],
                       ),
@@ -1100,14 +1101,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     subtitle: 'CONFIRMED IDENTITY',
                     isVerified: profile.aadhaarVerified,
                   ),
-                  const Divider(height: 24, color: Color(0xFFF1F5F9)),
+                  const Divider(height: 24, color: AppColors.darkDivider),
 
                   _buildVerifiedTrustRow(
                     title: 'PAN Card',
                     subtitle: 'TAX COMPLIANCE VERIFIED',
                     isVerified: profile.panVerified,
                   ),
-                  const Divider(height: 24, color: Color(0xFFF1F5F9)),
+                  const Divider(height: 24, color: AppColors.darkDivider),
 
                   _buildVerifiedTrustRow(
                     title: 'GST Registry',
@@ -1118,7 +1119,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   Center(
                     child: Text(
                       'PARTNERING SINCE MAY 2012',
-                      style: TextStyle(fontSize: 10, color: const Color(0xFF94A3B8), fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      style: TextStyle(fontSize: 10, color: const AppColors.textMuted, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                     ),
                   ),
                 ],
@@ -1129,20 +1130,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.darkCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: const AppColors.darkBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.star_outline, color: Color(0xFF0284C7), size: 20),
+                      Icon(Icons.star_outline, color: AppColors.primaryLight, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Client Reviews',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                     ],
                   ),
@@ -1160,7 +1161,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               return const Icon(
                                 Icons.rate_review_outlined,
                                 size: 60,
-                                color: Color(0xFF94A3B8),
+                                color: AppColors.textMuted,
                               );
                             },
                           ),
@@ -1171,7 +1172,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF475569),
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -1179,7 +1180,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           'Feedback from completed projects will appear here.',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF94A3B8),
+                            color: AppColors.textMuted,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -1261,9 +1262,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const AppColors.darkBorder),
       ),
       child: Material(
         color: Colors.transparent,
@@ -1285,7 +1286,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 const SizedBox(width: 12),
                 Text(
                   label,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 13),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -1299,21 +1300,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const AppColors.darkBorder),
       ),
       child: Column(
         children: [
           Text(
             value,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 6),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), height: 1.2),
+            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.textMuted, height: 1.2),
           ),
         ],
       ),
@@ -1324,13 +1325,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: AppColors.darkCard,
+        border: Border.all(color: const AppColors.darkBorder),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
       ),
     );
   }
@@ -1373,12 +1374,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               children: [
                 Text(
                   category,
-                  style: const TextStyle(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.darkCard70, fontSize: 8, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   title,
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.darkCard, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -1389,12 +1390,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
+                color: AppColors.darkCard.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 price,
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppColors.darkCard, fontSize: 11, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -1414,10 +1415,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: AppColors.darkSurface,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.shield_outlined, color: Color(0xFF64748B), size: 18),
+          child: const Icon(Icons.shield_outlined, color: AppColors.textSecondary, size: 18),
         ),
         const SizedBox(width: 12),
         Column(
@@ -1425,20 +1426,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           children: [
             Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 13),
+              style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(color: isVerified ? const Color(0xFF16A34A) : const Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.bold),
+              style: AppTypography.caption.copyWith(color: isVerified ? AppColors.success : AppColors.textMuted, fontWeight: FontWeight.bold, fontSize: 9),
             ),
           ],
         ),
         const Spacer(),
         if (isVerified)
-          const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 20)
+          const Icon(Icons.check_circle, color: AppColors.success, size: 20)
         else
-          const Icon(Icons.radio_button_unchecked, color: Color(0xFFCBD5E1), size: 20),
+          const Icon(Icons.radio_button_unchecked, color: AppColors.textMuted, size: 20),
       ],
     );
   }
@@ -1450,16 +1451,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.darkSurface,
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: AppColors.darkBorder),
           ),
-          child: Icon(icon, color: const Color(0xFF64748B), size: 18),
+          child: Icon(icon, color: AppColors.textSecondary, size: 18),
         ),
         const SizedBox(height: 6),
         Text(
           label,
-          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 0.5),
+          style: AppTypography.caption.copyWith(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.textMuted, letterSpacing: 0.5),
         ),
       ],
     );
@@ -1504,16 +1505,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Widget _buildProfileSetupForm() {
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+      borderSide: const BorderSide(color: AppColors.darkBorder, width: 1.2),
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () {
             setState(() {
               _isEditing = false;
@@ -1522,7 +1523,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         ),
         title: const Text(
           'Thekedar Connect',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
       ),
@@ -1538,13 +1539,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 // 1. Header Text
                 const Text(
                   'Professional Verification',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Complete your profile to unlock high-value contracts. Verified professionals receive 3x more project invitations.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.4),
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -1553,20 +1554,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: const [
-                          Icon(Icons.person_outline, color: Color(0xFF0284C7), size: 20),
+                          Icon(Icons.person_outline, color: AppColors.primaryLight, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Personal Information',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -1581,19 +1582,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF0284C7),
+                                    color: AppColors.primaryLight,
                                     shape: BoxShape.circle,
                                   ),
                                   child: CircleAvatar(
                                     radius: 46,
-                                    backgroundColor: const Color(0xFFEFF6FF),
+                                    backgroundColor: const AppColors.darkSurface,
                                     backgroundImage: _profilePhotoFile != null
                                         ? FileImage(_profilePhotoFile!)
                                         : (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
                                             ? NetworkImage(_profilePhotoUrl!)
                                             : null) as ImageProvider?,
                                     child: _profilePhotoFile == null && (_profilePhotoUrl == null || _profilePhotoUrl!.isEmpty)
-                                        ? const Icon(Icons.person, size: 40, color: Color(0xFF0284C7))
+                                        ? const Icon(Icons.person, size: 40, color: AppColors.primaryLight)
                                         : null,
                                   ),
                                 ),
@@ -1601,8 +1602,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                   onTap: _pickProfilePhoto,
                                   child: const CircleAvatar(
                                     radius: 14,
-                                    backgroundColor: Color(0xFF0284C7),
-                                    child: Icon(Icons.camera_alt, color: Colors.white, size: 12),
+                                    backgroundColor: AppColors.primaryLight,
+                                    child: Icon(Icons.camera_alt, color: AppColors.darkCard, size: 12),
                                   ),
                                 ),
                               ],
@@ -1614,7 +1615,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
                       const Text(
                         'FULL NAME',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1622,19 +1623,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'John Doe',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.person_outline, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'CONTACT NUMBER',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1642,19 +1643,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: '+91 98765 43210',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.phone_outlined, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'PERMANENT ADDRESS',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1663,7 +1664,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         maxLines: 3,
                         decoration: InputDecoration(
                           hintText: 'Building, Street, Area, City, PIN Code',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Padding(
                             padding: EdgeInsets.only(bottom: 30),
@@ -1671,7 +1672,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           ),
                           contentPadding: const EdgeInsets.all(16),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                     ],
@@ -1683,20 +1684,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: const [
-                          Icon(Icons.work_outline, color: Color(0xFF0284C7), size: 20),
+                          Icon(Icons.work_outline, color: AppColors.primaryLight, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Professional Details',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -1704,7 +1705,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
                       const Text(
                         'BUSINESS NAME',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1712,27 +1713,27 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'e.g. Apex Constructions',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.business_outlined, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'WORK CATEGORY',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         value: _selectedWorkCategory,
-                        dropdownColor: Colors.white,
+                        dropdownColor: AppColors.darkSurface,
                         borderRadius: BorderRadius.circular(12),
                         decoration: InputDecoration(
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
@@ -1741,7 +1742,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         items: _categories.map((c) {
                           return DropdownMenuItem<String>(
                             value: c,
-                            child: Text(c, style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A))),
+                            child: Text(c, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
                           );
                         }).toList(),
                         onChanged: (val) {
@@ -1758,7 +1759,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
                       const Text(
                         'YEARS OF EXPERIENCE',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1767,18 +1768,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'e.g. 10',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'PROJECTS COMPLETED',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1787,18 +1788,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'e.g. 25',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'PROFESSIONAL BIO',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1807,11 +1808,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         maxLines: 4,
                         decoration: InputDecoration(
                           hintText: 'Describe your expertise and major projects completed...',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           contentPadding: const EdgeInsets.all(16),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                     ],
@@ -1823,20 +1824,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: const [
-                          Icon(Icons.share_outlined, color: Color(0xFF0284C7), size: 20),
+                          Icon(Icons.share_outlined, color: AppColors.primaryLight, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Social Links',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -1844,7 +1845,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
                       const Text(
                         'WHATSAPP NUMBER',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1852,19 +1853,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: '+91 98765 43210',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.chat_bubble_outline, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'INSTAGRAM PROFILE',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1872,19 +1873,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: '@username',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.camera_alt_outlined, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'FACEBOOK PROFILE',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1892,19 +1893,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'facebook.com/profile',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.public_outlined, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
                       const Text(
                         'WEBSITE URL',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -1912,12 +1913,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'www.yourwebsite.com',
-                          fillColor: const Color(0xFFF8FAFC),
+                          fillColor: AppColors.darkBackground,
                           filled: true,
                           prefixIcon: const Icon(Icons.language_outlined, size: 18),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           enabledBorder: inputBorder,
-                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.8)),
+                          focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.8)),
                         ),
                       ),
                     ],
@@ -1928,20 +1929,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: const [
-                          Icon(Icons.upload_file_outlined, color: Color(0xFF0284C7), size: 20),
+                          Icon(Icons.upload_file_outlined, color: AppColors.primaryLight, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Document Upload',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -1958,23 +1959,23 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.link, size: 14, color: Color(0xFF0284C7)),
+                            const Icon(Icons.link, size: 14, color: AppColors.primaryLight),
                             const SizedBox(width: 4),
                             const Text(
                               'Uploaded document: ',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                             ),
                             Expanded(
                               child: Text(
                                 _panDocUrl!.split('/').last,
-                                style: const TextStyle(fontSize: 10, color: Color(0xFF0284C7), fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ],
-                      const Divider(height: 32, color: Color(0xFFF1F5F9)),
+                      const Divider(height: 32, color: AppColors.darkDivider),
 
                       // GST upload row
                       _buildMockupUploadRow(
@@ -1987,23 +1988,23 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.link, size: 14, color: Color(0xFF0284C7)),
+                            const Icon(Icons.link, size: 14, color: AppColors.primaryLight),
                             const SizedBox(width: 4),
                             const Text(
                               'Uploaded document: ',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                             ),
                             Expanded(
                               child: Text(
                                 _gstDocUrl!.split('/').last,
-                                style: const TextStyle(fontSize: 10, color: Color(0xFF0284C7), fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ],
-                      const Divider(height: 32, color: Color(0xFFF1F5F9)),
+                      const Divider(height: 32, color: AppColors.darkDivider),
 
                       // Aadhaar upload row
                       _buildMockupUploadRow(
@@ -2016,16 +2017,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.link, size: 14, color: Color(0xFF0284C7)),
+                            const Icon(Icons.link, size: 14, color: AppColors.primaryLight),
                             const SizedBox(width: 4),
                             const Text(
                               'Uploaded document: ',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                             ),
                             Expanded(
                               child: Text(
                                 _aadhaarDocUrl!.split('/').last,
-                                style: const TextStyle(fontSize: 10, color: Color(0xFF0284C7), fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -2041,20 +2042,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   padding: const EdgeInsets.all(20),
                   margin: const EdgeInsets.only(top: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: const [
-                          Icon(Icons.photo_library_outlined, color: Color(0xFF0284C7), size: 20),
+                          Icon(Icons.photo_library_outlined, color: AppColors.primaryLight, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Project Portfolio',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
@@ -2064,7 +2065,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       if (_portfolioUrls.isNotEmpty) ...[
                         const Text(
                           'EXISTING WORK PHOTOS',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -2098,8 +2099,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                       },
                                       child: const CircleAvatar(
                                         radius: 10,
-                                        backgroundColor: Colors.red,
-                                        child: Icon(Icons.close, size: 12, color: Colors.white),
+                                        backgroundColor: AppColors.error,
+                                        child: Icon(Icons.close, size: 12, color: AppColors.darkCard),
                                       ),
                                     ),
                                   ),
@@ -2115,7 +2116,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       if (_portfolioFiles.isNotEmpty) ...[
                         const Text(
                           'NEWLY SELECTED PHOTOS',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 0.5),
                         ),
                         const SizedBox(height: 8),
                         ListView.builder(
@@ -2127,9 +2128,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               margin: const EdgeInsets.only(bottom: 10),
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
+                                color: AppColors.darkBackground,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(color: const AppColors.darkBorder),
                               ),
                               child: Row(
                                 children: [
@@ -2155,7 +2156,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                    icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
                                     onPressed: () {
                                       setState(() {
                                         _portfolioFiles.removeAt(index);
@@ -2176,8 +2177,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         icon: const Icon(Icons.add_photo_alternate_outlined),
                         label: const Text('Add Project Images', style: TextStyle(fontWeight: FontWeight.bold)),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0284C7),
-                          side: const BorderSide(color: Color(0xFF0284C7)),
+                          foregroundColor: const AppColors.primaryLight,
+                          side: const BorderSide(color: AppColors.primaryLight),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                         ),
@@ -2195,8 +2196,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       : ElevatedButton.icon(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0369A1), // Royal Blue
-                            foregroundColor: Colors.white,
+                            backgroundColor: const AppColors.primary, // Royal Blue
+                            foregroundColor: AppColors.darkCard,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
@@ -2210,7 +2211,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 const SizedBox(height: 10),
                 const Text(
                   'BY SUBMITTING, YOU AGREE TO OUR VERIFICATION TERMS & CONDITIONS.',
-                  style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -2219,16 +2220,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'WHY VERIFY?',
-                        style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0369A1), fontSize: 13, letterSpacing: 0.5),
+                        style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 13, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 16),
                       _buildCheckBullet('Priority listing in "Top Professionals" section'),
@@ -2245,21 +2246,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.darkCard,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const AppColors.darkBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const Text(
                         'NEED ASSISTANCE?',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 12, letterSpacing: 0.5),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 12, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 8),
                       const Text(
                         'Our onboarding team is available 24/7 to help you with documentation.',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.4),
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
                       ),
                       const SizedBox(height: 16),
                       OutlinedButton.icon(
@@ -2271,8 +2272,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         icon: const Icon(Icons.headset_mic_outlined, size: 16),
                         label: const Text('Chat with Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0369A1),
-                          side: const BorderSide(color: Color(0xFF0369A1), width: 1.2),
+                          foregroundColor: const AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary, width: 1.2),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
@@ -2293,7 +2294,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.darkCard,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.06),
@@ -2312,11 +2313,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: const Color(0xFFF1F5F9),
+                      backgroundColor: const AppColors.darkDivider,
                       child: ClipOval(
                         child: _profilePhotoUrl != null
                             ? Image.network(_profilePhotoUrl!, width: 44, height: 44, fit: BoxFit.cover)
-                            : const Icon(Icons.person, color: Color(0xFF64748B)),
+                            : const Icon(Icons.person, color: AppColors.textSecondary),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -2327,12 +2328,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         children: [
                           const Text(
                             'Verification in Progress',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 14),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 14),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             'PROFILE VISIBILITY: ${_calculateVisibility()}%',
-                            style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0284C7), fontSize: 11, letterSpacing: 0.5),
+                            style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primaryLight, fontSize: 11, letterSpacing: 0.5),
                           ),
                         ],
                       ),
@@ -2351,12 +2352,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 18),
+        const Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: Color(0xFF475569), fontSize: 13, height: 1.3, fontWeight: FontWeight.w500),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.3, fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -2369,14 +2370,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     required String status,
     required VoidCallback onUploadTap,
   }) {
-    Color statusColor = const Color(0xFF94A3B8);
-    Color statusBg = const Color(0xFFF1F5F9);
+    Color statusColor = const AppColors.textMuted;
+    Color statusBg = const AppColors.darkDivider;
     if (status == 'VERIFIED') {
-      statusColor = const Color(0xFF10B981);
-      statusBg = const Color(0xFFD1FAE5);
+      statusColor = const AppColors.success;
+      statusBg = const AppColors.success.withOpacity(0.15);
     } else if (status == 'OPTIONAL') {
-      statusColor = const Color(0xFF64748B);
-      statusBg = const Color(0xFFF1F5F9);
+      statusColor = const AppColors.textSecondary;
+      statusBg = const AppColors.darkDivider;
     }
 
     return Column(
@@ -2388,10 +2389,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: const AppColors.darkSurface,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.credit_card_outlined, color: Color(0xFF3B82F6), size: 18),
+              child: const Icon(Icons.credit_card_outlined, color: AppColors.primary, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -2400,12 +2401,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 13),
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 13),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     formatInfo,
-                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 9, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -2432,8 +2433,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               child: ElevatedButton(
                 onPressed: onUploadTap,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0284C7),
-                  foregroundColor: Colors.white,
+                  backgroundColor: const AppColors.primaryLight,
+                  foregroundColor: AppColors.darkCard,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -2472,22 +2473,22 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.go('/customer_home'),
         ),
         title: const Text(
           'Profile',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
@@ -2538,9 +2539,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.darkCard,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: const AppColors.darkBorder),
                       ),
                       child: Column(
                         children: [
@@ -2550,17 +2551,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF0284C7),
+                                  color: AppColors.primaryLight,
                                   shape: BoxShape.circle,
                                 ),
                                 child: CircleAvatar(
                                   radius: 46,
-                                  backgroundColor: const Color(0xFFEFF6FF),
+                                  backgroundColor: const AppColors.darkSurface,
                                   backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
                                   child: photoUrl.isEmpty
                                       ? Text(
                                           fullName[0].toUpperCase(),
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 32, color: Color(0xFF0284C7)),
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 32, color: AppColors.primaryLight),
                                         )
                                       : null,
                                 ),
@@ -2569,8 +2570,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                 onTap: () => setState(() => _showUpdateForm = true),
                                 child: const CircleAvatar(
                                   radius: 16,
-                                  backgroundColor: Color(0xFF0284C7),
-                                  child: Icon(Icons.edit, color: Colors.white, size: 14),
+                                  backgroundColor: AppColors.primaryLight,
+                                  child: Icon(Icons.edit, color: AppColors.darkCard, size: 14),
                                 ),
                               ),
                             ],
@@ -2578,24 +2579,24 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           const SizedBox(height: 16),
                           Text(
                             fullName,
-                            style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 22),
+                            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 22),
                           ),
                           const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
+                              color: const AppColors.darkSurface,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFDBEAFE)),
+                              border: Border.all(color: const AppColors.primary.withOpacity(0.2)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
-                                Icon(Icons.verified, color: Color(0xFF0284C7), size: 12),
+                                Icon(Icons.verified, color: AppColors.primaryLight, size: 12),
                                 SizedBox(width: 4),
                                 Text(
                                   'Verified Member',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryLight),
                                 ),
                               ],
                             ),
@@ -2606,7 +2607,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                                 ? notes
                                 : 'Dedicated craftsman specialized in modern home renovations and structural repairs.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.4),
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
                           ),
                         ],
                       ),
@@ -2645,9 +2646,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.darkCard,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: const AppColors.darkBorder),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2657,16 +2658,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             children: const [
                               Text(
                                 'Personal Info',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                               ),
-                              Icon(Icons.info_outline, color: Color(0xFF94A3B8), size: 18),
+                              Icon(Icons.info_outline, color: AppColors.textMuted, size: 18),
                             ],
                           ),
                           const SizedBox(height: 16),
                           _buildInfoRow(Icons.phone_outlined, 'Phone', phone),
-                          const Divider(height: 24, color: Color(0xFFF1F5F9)),
+                          const Divider(height: 24, color: AppColors.darkDivider),
                           _buildInfoRow(Icons.email_outlined, 'Email', email),
-                          const Divider(height: 24, color: Color(0xFFF1F5F9)),
+                          const Divider(height: 24, color: AppColors.darkDivider),
                           _buildInfoRow(Icons.location_on_outlined, 'Address', address),
                         ],
                       ),
@@ -2676,14 +2677,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     // 4. Options List
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.darkCard,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: const AppColors.darkBorder),
                       ),
                       child: Column(
                         children: [
                           _buildMenuTile(Icons.payment_outlined, 'Payment Methods'),
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          const Divider(height: 1, color: AppColors.darkDivider),
                           _buildMenuTile(Icons.security_outlined, 'Security & Privacy'),
                         ],
                       ),
@@ -2693,15 +2694,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     // 5. Sign Out Box
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF1F2),
+                        color: const AppColors.error.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFFFE4E6)),
+                        border: Border.all(color: const AppColors.error.withOpacity(0.2)),
                       ),
                       child: ListTile(
-                        leading: const Icon(Icons.logout, color: Colors.red),
+                        leading: const Icon(Icons.logout, color: AppColors.error),
                         title: const Text(
                           'Sign Out',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error),
                         ),
                         onTap: () async {
                           await Supabase.instance.client.auth.signOut();
@@ -2721,8 +2722,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         icon: const Icon(Icons.cached, size: 16),
                         label: const Text('Update Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0284C7),
-                          foregroundColor: Colors.white,
+                          backgroundColor: const AppColors.primaryLight,
+                          foregroundColor: AppColors.darkCard,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
@@ -2741,26 +2742,26 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Widget _buildCustomerUpdateProfileForm() {
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+      borderSide: const BorderSide(color: AppColors.darkBorder, width: 1.5),
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => setState(() => _showUpdateForm = false),
         ),
         title: const Text(
           'Update Profile',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
@@ -2780,17 +2781,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF0284C7),
+                          color: AppColors.primaryLight,
                           shape: BoxShape.circle,
                         ),
                         child: CircleAvatar(
                           radius: 46,
-                          backgroundColor: const Color(0xFFEFF6FF),
+                          backgroundColor: const AppColors.darkSurface,
                           backgroundImage: _profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
                               ? NetworkImage(_profilePhotoUrl!)
                               : null,
                           child: _profilePhotoUrl == null || _profilePhotoUrl!.isEmpty
-                              ? const Icon(Icons.person, size: 40, color: Color(0xFF0284C7))
+                              ? const Icon(Icons.person, size: 40, color: AppColors.primaryLight)
                               : null,
                         ),
                       ),
@@ -2798,8 +2799,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         onTap: _showAvatarSelectionDialog,
                         child: const CircleAvatar(
                           radius: 14,
-                          backgroundColor: Color(0xFF0284C7),
-                          child: Icon(Icons.camera_alt, color: Colors.white, size: 12),
+                          backgroundColor: AppColors.primaryLight,
+                          child: Icon(Icons.camera_alt, color: AppColors.darkCard, size: 12),
                         ),
                       ),
                     ],
@@ -2809,7 +2810,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     onPressed: _showAvatarSelectionDialog,
                     child: const Text(
                       'Upload Profile Photo',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryLight),
                     ),
                   ),
                 ],
@@ -2823,11 +2824,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               controller: _fullNameController,
               decoration: InputDecoration(
                 hintText: 'e.g. Rajesh Kumar',
-                fillColor: Colors.white,
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -2837,11 +2838,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               controller: _phoneController,
               decoration: InputDecoration(
                 hintText: '+91 98765 43210',
-                fillColor: Colors.white,
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -2851,11 +2852,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               controller: _emailController,
               decoration: InputDecoration(
                 hintText: 'rajesh@thekedarconnect.com',
-                fillColor: Colors.white,
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -2875,11 +2876,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 }
               },
               decoration: InputDecoration(
-                fillColor: Colors.white,
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -2889,12 +2890,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               controller: _addressController,
               decoration: InputDecoration(
                 hintText: 'Enter your full address',
-                suffixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF0284C7)),
-                fillColor: Colors.white,
+                suffixIcon: const Icon(Icons.location_on_outlined, color: AppColors.primaryLight),
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -2911,11 +2912,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 }
               },
               decoration: InputDecoration(
-                fillColor: Colors.white,
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 16),
@@ -2926,11 +2927,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               maxLines: 4,
               decoration: InputDecoration(
                 hintText: 'Mention any specific requirements or property details...',
-                fillColor: Colors.white,
+                fillColor: AppColors.darkSurface,
                 filled: true,
                 contentPadding: const EdgeInsets.all(20),
                 enabledBorder: inputBorder,
-                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: Color(0xFF0284C7), width: 2)),
+                focusedBorder: inputBorder.copyWith(borderSide: const BorderSide(color: AppColors.primaryLight, width: 2)),
               ),
             ),
             const SizedBox(height: 24),
@@ -2939,14 +2940,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: const AppColors.darkSurface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFDBEAFE)),
+                border: Border.all(color: const AppColors.primary.withOpacity(0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Icon(Icons.shield_outlined, color: Color(0xFF0284C7), size: 24),
+                  Icon(Icons.shield_outlined, color: AppColors.primaryLight, size: 24),
                   SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -2954,12 +2955,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       children: [
                         Text(
                           'Verification Status',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 14),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 14),
                         ),
                         SizedBox(height: 4),
                         Text(
                           'Completing your profile increases your profile visibility to potential clients by 45%.',
-                          style: TextStyle(color: Color(0xFF64748B), fontSize: 12, height: 1.4),
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
                         ),
                       ],
                     ),
@@ -2978,10 +2979,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     child: OutlinedButton(
                       onPressed: () => setState(() => _showUpdateForm = false),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        side: const BorderSide(color: AppColors.darkBorder),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                      child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -2994,8 +2995,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       icon: const Icon(Icons.check_circle_outline, size: 16),
                       label: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0284C7),
-                        foregroundColor: Colors.white,
+                        backgroundColor: const AppColors.primaryLight,
+                        foregroundColor: AppColors.darkCard,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
@@ -3015,7 +3016,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 13),
+        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 13),
       ),
     );
   }
@@ -3024,19 +3025,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const AppColors.darkBorder),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
-              color: Color(0xFFEFF6FF),
+              color: AppColors.darkSurface,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF0284C7), size: 20),
+            child: Icon(icon, color: const AppColors.primaryLight, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3045,12 +3046,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
               ],
             ),
@@ -3065,8 +3066,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundColor: const Color(0xFFEFF6FF),
-          child: Icon(icon, color: const Color(0xFF0284C7), size: 18),
+          backgroundColor: const AppColors.darkSurface,
+          child: Icon(icon, color: const AppColors.primaryLight, size: 18),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -3075,7 +3076,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 2),
               Text(
@@ -3091,12 +3092,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
   Widget _buildMenuTile(IconData icon, String title) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF475569)),
+      leading: Icon(icon, color: const AppColors.textSecondary),
       title: Text(
         title,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
       ),
-      trailing: const Icon(Icons.chevron_right, color: Color(0xFF94A3B8), size: 20),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 20),
       onTap: () {},
     );
   }

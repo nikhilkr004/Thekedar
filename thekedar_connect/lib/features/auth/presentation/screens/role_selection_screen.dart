@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/presentation/screens/main_navigation_screen.dart';
+import '../../../../core/theme/design_system.dart';
 
 class RoleSelectionScreen extends ConsumerStatefulWidget {
   const RoleSelectionScreen({super.key});
@@ -38,10 +39,9 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       ref.invalidate(userRoleProvider);
       if (mounted) context.go(nextRoute);
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -49,37 +49,52 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeScreen = screenWidth > 600;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose Your Role')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildRoleCard(
-                    context,
-                    title: 'I am a Homeowner',
-                    description:
-                        'Post projects, hire contractors, and manage renovations.',
-                    icon: Icons.house,
-                    color: Colors.blue,
-                    onTap: () => _selectRole('customer', '/customer_home'),
+      backgroundColor: AppColors.darkBackground,
+      appBar: AppBar(
+        backgroundColor: AppColors.darkSurface,
+        elevation: 0,
+        title: Text(
+          'Choose Your Role',
+          style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: SizedBox(
+          width: isLargeScreen ? 600 : double.infinity,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxl),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildRoleCard(
+                        context,
+                        title: 'I am a Homeowner',
+                        description: 'Post projects, hire contractors, and manage renovations.',
+                        icon: Icons.house,
+                        color: AppColors.primaryLight,
+                        onTap: () => _selectRole('customer', '/customer_home'),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildRoleCard(
+                        context,
+                        title: 'I am a Contractor',
+                        description: 'Find leads, send proposals, and grow your business.',
+                        icon: AppIcons.handyman,
+                        color: AppColors.secondary,
+                        onTap: () => _selectRole('contractor', '/profile_setup'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  _buildRoleCard(
-                    context,
-                    title: 'I am a Contractor',
-                    description:
-                        'Find leads, send proposals, and grow your business.',
-                    icon: Icons.handyman,
-                    color: Colors.orange,
-                    onTap: () => _selectRole('contractor', '/profile_setup'),
-                  ),
-                ],
-              ),
-            ),
+                ),
+        ),
+      ),
     );
   }
 
@@ -91,43 +106,50 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundColor: color.withOpacity(0.2),
-                child: Icon(icon, size: 32, color: color),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      description,
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  ],
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.darkCard,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.darkBorder),
+        boxShadow: AppShadows.darkCardShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.large),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xxl),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: color.withOpacity(0.15),
+                  child: Icon(icon, size: 32, color: color),
                 ),
-              ),
-              const Icon(Icons.arrow_forward_ios),
-            ],
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTypography.subtitle.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        description,
+                        style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, color: AppColors.textMuted, size: 18),
+              ],
+            ),
           ),
         ),
       ),
