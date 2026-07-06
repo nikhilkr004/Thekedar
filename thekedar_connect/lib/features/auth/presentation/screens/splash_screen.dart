@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/localization/locale_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/design_system.dart';
 
@@ -22,6 +23,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _checkAuth() async {
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
+
+    final localeState = ref.read(localeProvider);
+    if (!localeState.hasSelectedLanguage) {
+      context.go('/language');
+      return;
+    }
     
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {

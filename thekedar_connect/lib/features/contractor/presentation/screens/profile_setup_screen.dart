@@ -10,6 +10,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image/image.dart' as img;
+import 'package:thekedar_connect/l10n/app_localizations.dart';
+import '../../../../core/localization/locale_provider.dart';
 import '../providers/contractor_provider.dart';
 import '../models/contractor_profile.dart';
 
@@ -252,6 +254,84 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         _loadingRole = false;
       });
     }
+  }
+
+  void _showSettingsBottomSheet() {
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocaleCode = ref.read(localeProvider).locale.languageCode;
+    final currentLangName = languageList.firstWhere(
+      (l) => l.code == currentLocaleCode,
+      orElse: () => languageList.first,
+    ).englishName;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.darkSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                ),
+              ),
+              const Divider(color: AppColors.darkBorder, height: 24),
+              ListTile(
+                leading: const Icon(Icons.language, color: AppColors.primary),
+                title: Text(
+                  l10n.settingsLanguage,
+                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  '${l10n.currentLanguage}: $currentLangName',
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios, color: AppColors.textMuted, size: 16),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/language', extra: true);
+                },
+              ),
+              const Divider(color: AppColors.darkBorder, height: 1),
+              ListTile(
+                leading: const Icon(Icons.logout, color: AppColors.error),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Supabase.instance.client.auth.signOut();
+                  await ref.read(localeProvider.notifier).clearPreferences();
+                  if (mounted) {
+                    context.go('/splash');
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _loadCustomerData() async {
@@ -2505,7 +2585,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
-            onPressed: () {},
+            onPressed: _showSettingsBottomSheet,
           ),
         ],
       ),
@@ -2778,7 +2858,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
-            onPressed: () {},
+            onPressed: _showSettingsBottomSheet,
           ),
         ],
       ),

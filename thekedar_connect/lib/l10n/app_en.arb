@@ -1,0 +1,78 @@
+{
+  "appName": "Thekedar Connect",
+  "@appName": {
+    "description": "The title of the application"
+  },
+  "welcomeTitle": "Welcome to Thekedar Connect",
+  "@welcomeTitle": {
+    "description": "App onboarding welcome message"
+  },
+  "chooseLanguage": "Choose your preferred language",
+  "@chooseLanguage": {
+    "description": "Header for language selection page"
+  },
+  "searchLanguages": "Search languages...",
+  "@searchLanguages": {
+    "description": "Search bar placeholder in language select"
+  },
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Standard proceed button label"
+  },
+  "skipButton": "Skip",
+  "@skipButton": {
+    "description": "Skip button label"
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Language option title in settings"
+  },
+  "changeLanguage": "Change Language",
+  "@changeLanguage": {
+    "description": "Option to change active language"
+  },
+  "currentLanguage": "Current Language",
+  "@currentLanguage": {
+    "description": "Header showing active language label"
+  },
+  "errorOccurred": "An error occurred. Please try again.",
+  "@errorOccurred": {
+    "description": "General system error warning"
+  },
+  "fieldRequired": "This field is required",
+  "@fieldRequired": {
+    "description": "Form validation warning message"
+  },
+  "homeTab": "Home",
+  "@homeTab": {
+    "description": "Main navigation tab label"
+  },
+  "quotesTab": "Quotes",
+  "@quotesTab": {
+    "description": "Contractor quotes navigation tab label"
+  },
+  "chatTab": "Chat",
+  "@chatTab": {
+    "description": "Chat center navigation tab label"
+  },
+  "profileTab": "Profile",
+  "@profileTab": {
+    "description": "User profile settings tab label"
+  },
+  "acceptQuote": "Accept Quote",
+  "@acceptQuote": {
+    "description": "Button to accept quote"
+  },
+  "rejectBid": "Reject Bid",
+  "@rejectBid": {
+    "description": "Button to reject a contractor bid"
+  },
+  "bidRejected": "BID REJECTED",
+  "@bidRejected": {
+    "description": "Bid status badge when declined"
+  },
+  "messageContractor": "MESSAGE CONTRACTOR",
+  "@messageContractor": {
+    "description": "Button to message direct hired contractor"
+  }
+}

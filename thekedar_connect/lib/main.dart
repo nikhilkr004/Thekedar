@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:thekedar_connect/l10n/app_localizations.dart';
+import 'core/localization/locale_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/analytics/analytics_repository.dart';
@@ -33,12 +36,15 @@ class ThekedarConnectApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-
     final themeAsync = ref.watch(dynamicThemeProvider);
+    final localeState = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'Thekedar Connect',
       theme: themeAsync.value ?? AppTheme.lightTheme,
+      locale: localeState.locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen.dart';
 import '../../features/auth/presentation/screens/role_selection_screen.dart';
+import '../../features/auth/presentation/screens/language_selection_screen.dart';
 import '../presentation/screens/main_navigation_screen.dart';
 import '../../features/projects/presentation/screens/post_project_screen.dart';
 import '../../features/contractor/presentation/screens/send_proposal_screen.dart';
@@ -19,6 +20,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/language',
+        builder: (context, state) {
+          final isFromSettings = state.extra as bool? ?? false;
+          return LanguageSelectionScreen(isFromSettings: isFromSettings);
+        },
       ),
       GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
       GoRoute(

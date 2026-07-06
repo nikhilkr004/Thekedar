@@ -1,0 +1,22 @@
+{
+  "appName": "Thekedar Connect",
+  "welcomeTitle": "Welcome to Thekedar Connect",
+  "chooseLanguage": "Choose your preferred language",
+  "searchLanguages": "Search languages...",
+  "continueButton": "Continue",
+  "skipButton": "Skip",
+  "settingsLanguage": "Language",
+  "changeLanguage": "Change Language",
+  "currentLanguage": "Current Language",
+  "errorOccurred": "An error occurred. Please try again.",
+  "fieldRequired": "This field is required",
+  "homeTab": "Home",
+  "quotesTab": "Quotes",
+  "chatTab": "Chat",
+  "profileTab": "Profile",
+  "acceptQuote": "Accept Quote",
+  "rejectBid": "Reject Bid",
+  "bidRejected": "BID REJECTED",
+  "messageContractor": "MESSAGE CONTRACTOR",
+  "@@locale": "pa"
+}

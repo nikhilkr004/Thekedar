@@ -1,0 +1,21 @@
+{
+  "appName": "தேகேதார் கனெக்ட்",
+  "welcomeTitle": "தேகேதார் கனெக்டிற்கு உங்களை வரவேற்கிறோம்",
+  "chooseLanguage": "உங்களுக்கு விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்",
+  "searchLanguages": "மொழியைத் தேடு...",
+  "continueButton": "தொடரவும்",
+  "skipButton": "தவிர்",
+  "settingsLanguage": "மொழி",
+  "changeLanguage": "மொழியை மாற்றுக",
+  "currentLanguage": "தற்போதைய மொழி",
+  "errorOccurred": "பிழை ஏற்பட்டுள்ளது. மீண்டும் முயற்சிக்கவும்.",
+  "fieldRequired": "இந்தப் புலம் கட்டாயமாகும்",
+  "homeTab": "முகப்பு",
+  "quotesTab": "மதிப்பீடுகள்",
+  "chatTab": "அரட்டை",
+  "profileTab": "சுயவிவரம்",
+  "acceptQuote": "மதிப்பீட்டை ஏற்றுக்கொள்",
+  "rejectBid": "மதிப்பீட்டை நிராகரி",
+  "bidRejected": "மதிப்பீடு நிராகரிக்கப்பட்டது",
+  "messageContractor": "ठेकेदार को संदेश भेजें"
+}
