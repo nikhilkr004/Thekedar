@@ -44,10 +44,18 @@ class AppColors {
   static const Color textHint = Color(0xFF94A3B8);
   static const Color textInverse = Color(0xFF111827);
 
-  // Icon Colors
+  // Fallback icon definitions
   static const Color iconNormal = Color(0xFFC5CBD6);
   static const Color iconSelected = Color(0xFF5B5FEF);
   static const Color iconAccent = Color(0xFF8B5CF6);
+
+  // Premium Light Theme Layers (Fallback compilation properties)
+  static const Color lightBackground = Color(0xFFF8FAFC);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
+  static const Color lightBorder = Color(0xFFE2E8F0);
+  static const Color lightTextPrimary = Color(0xFF0F172A);
+  static const Color lightTextSecondary = Color(0xFF475569);
 }
 
 class AppSpacing {
