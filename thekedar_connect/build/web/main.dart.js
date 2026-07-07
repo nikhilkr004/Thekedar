@@ -133125,7 +133125,7 @@ e=m.z
 k=e==null?"":e
 if(m.Q!=null&&m.Q.length!==0){g=m.Q
 g.toString
-d=g}else d="0000000000"
+d=g}else d=null
 j=d
 s=8
 return A.p(h.b.bB("users").aSk(A.a0(["id",m.a,"role",a,"email",k,"full_name",l,"phone",j],t.N,t.z)),$async$xD)

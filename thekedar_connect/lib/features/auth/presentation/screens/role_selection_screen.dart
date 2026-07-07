@@ -22,7 +22,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       if (user != null) {
         final name = user.userMetadata?['full_name'] ?? 'Google User';
         final email = user.email ?? '';
-        final phone = (user.phone != null && user.phone!.isNotEmpty) ? user.phone! : '0000000000';
+        final String? phone = (user.phone != null && user.phone!.isNotEmpty) ? user.phone! : null;
         
         await Supabase.instance.client.from('users').upsert({
           'id': user.id,
