@@ -16,13 +16,111 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
   bool _isLoading = false;
 
   Future<void> _selectRole(String role, String nextRoute) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null && user.phone != null && user.phone!.isNotEmpty) {
+      await _saveRoleWithPhone(role, nextRoute, user.phone!);
+    } else {
+      _promptPhoneNumber(role, nextRoute);
+    }
+  }
+
+  void _promptPhoneNumber(String role, String nextRoute) {
+    final phoneController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: AppColors.darkSurface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    'Complete Your Profile',
+                    style: AppTypography.subtitle.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const Text(
+                    'Please enter your 10-digit mobile number to complete onboarding.',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  TextFormField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      labelText: 'Phone Number',
+                      hintText: '9876543210',
+                      prefixText: '+91 ',
+                      prefixIcon: Icon(Icons.phone_outlined, color: AppColors.iconNormal),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Phone number is required';
+                      }
+                      if (value.length != 10 || int.tryParse(value) == null) {
+                        return 'Please enter a valid 10-digit phone number';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (formKey.currentState!.validate()) {
+                        Navigator.pop(context); // Close bottom sheet
+                        final formattedPhone = '+91${phoneController.text.trim()}';
+                        await _saveRoleWithPhone(role, nextRoute, formattedPhone);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Complete Onboarding', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _saveRoleWithPhone(String role, String nextRoute, String phone) async {
     setState(() => _isLoading = true);
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
-        final name = user.userMetadata?['full_name'] ?? 'Google User';
+        final name = user.userMetadata?['full_name'] ?? 'New User';
         final email = user.email ?? '';
-        final String? phone = (user.phone != null && user.phone!.isNotEmpty) ? user.phone! : null;
         
         await Supabase.instance.client.from('users').upsert({
           'id': user.id,
