@@ -6,6 +6,22 @@ import '../providers/contractor_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/design_system.dart';
 
+final razorpayKeyProvider = FutureProvider<String>((ref) async {
+  try {
+    final response = await Supabase.instance.client
+        .from('app_configurations')
+        .select('value')
+        .eq('key', 'razorpay_key')
+        .maybeSingle();
+    if (response != null && response['value'] != null) {
+      return response['value'] as String;
+    }
+  } catch (e) {
+    debugPrint('Error fetching razorpay_key configuration: $e');
+  }
+  return 'rzp_test_Sw1y7ceIZ6e1Ot'; // fallback default test key
+});
+
 class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
 
@@ -85,55 +101,30 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       _pendingCredits = 50;
     }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.darkDialog,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.large)),
-          title: Text(
-            'Buy $_pendingCredits Credits',
-            style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-          ),
-          content: Text(
-            'Choose a payment method. If you are on an emulator or don\'t have Google Play Services configured, select "Simulate Payment" to add credits instantly.',
-            style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _creditWallet();
-              },
-              child: Text(
-                'Simulate Payment (Dev)',
-                style: AppTypography.button.copyWith(color: AppColors.primaryLight, fontSize: 13),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _openRazorpayCheckout(title, amount);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.small)),
-              ),
-              child: Text(
-                'Use Razorpay (SDK)',
-                style: AppTypography.button.copyWith(color: Colors.white, fontSize: 13),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+    _openRazorpayCheckout(title, amount);
   }
 
-  void _openRazorpayCheckout(String title, String amount) {
+  void _openRazorpayCheckout(String title, String amount) async {
+    // Show a loading indicator while fetching the active API key
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+    );
+
+    String key = 'rzp_test_Sw1y7ceIZ6e1Ot';
+    try {
+      key = await ref.read(razorpayKeyProvider.future);
+    } catch (_) {}
+
+    if (mounted) {
+      Navigator.pop(context); // Dismiss loading dialog
+    }
+
     final options = {
-      'key': 'rzp_test_Sw1y7ceIZ6e1Ot',
+      'key': key,
       'amount': (int.parse(amount.replaceAll(RegExp(r'[^0-9]'), '')) * 100),
       'name': 'Thekedar Connect',
       'description': title,
