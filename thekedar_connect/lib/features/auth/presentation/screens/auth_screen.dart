@@ -16,9 +16,11 @@ class AuthScreen extends ConsumerStatefulWidget {
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool _isLoading = false;
   bool _otpSent = false;
-  String _authMethod = 'phone'; // 'phone' or 'email'
-  final _phoneController = TextEditingController();
+  String _authMethod = 'email_otp'; // 'email_otp' or 'email_password'
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _isSignUpMode = false;
   
   // 6-digit OTP individual controllers and focus nodes
   final _otp1Controller = TextEditingController();
@@ -41,8 +43,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     _otp1Controller.dispose();
     _otp2Controller.dispose();
     _otp3Controller.dispose();
@@ -78,27 +80,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _sendOtp() async {
-    final identifier = _authMethod == 'email' 
-        ? _emailController.text.trim()
-        : _phoneController.text.trim();
+    final identifier = _emailController.text.trim();
         
     if (identifier.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your ${_authMethod == 'email' ? 'email address' : 'phone number'}')),
+        const SnackBar(content: Text('Please enter your email address')),
       );
       return;
     }
     setState(() => _isLoading = true);
     try {
-      if (_authMethod == 'email') {
-        await Supabase.instance.client.auth.signInWithOtp(
-          email: identifier,
-        );
-      } else {
-        await Supabase.instance.client.auth.signInWithOtp(
-          phone: identifier,
-        );
-      }
+      await Supabase.instance.client.auth.signInWithOtp(
+        email: identifier,
+      );
       setState(() {
         _otpSent = true;
       });
@@ -120,9 +114,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _verifyOtp() async {
-    final identifier = _authMethod == 'email' 
-        ? _emailController.text.trim()
-        : _phoneController.text.trim();
+    final identifier = _emailController.text.trim();
         
     final code = _otp1Controller.text.trim() +
         _otp2Controller.text.trim() +
@@ -139,19 +131,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
     setState(() => _isLoading = true);
     try {
-      if (_authMethod == 'email') {
-        await Supabase.instance.client.auth.verifyOTP(
-          token: code,
-          type: OtpType.email,
-          email: identifier,
-        );
-      } else {
-        await Supabase.instance.client.auth.verifyOTP(
-          token: code,
-          type: OtpType.sms,
-          phone: identifier,
-        );
-      }
+      await Supabase.instance.client.auth.verifyOTP(
+        token: code,
+        type: OtpType.email,
+        email: identifier,
+      );
       
       if (!mounted) return;
       final session = Supabase.instance.client.auth.currentSession;
@@ -169,6 +153,59 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Verification failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loginWithPassword() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email and password')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      if (_isSignUpMode) {
+        await Supabase.instance.client.auth.signUp(
+          email: email,
+          password: password,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Registration successful! Please confirm your email or log in.')),
+          );
+        }
+        setState(() => _isSignUpMode = false);
+      } else {
+        await Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+
+        if (!mounted) return;
+        final session = Supabase.instance.client.auth.currentSession;
+        if (session != null) {
+          final role = session.user.userMetadata?['role'];
+          if (role == 'customer') {
+            context.go('/customer_home');
+          } else if (role == 'contractor') {
+            context.go('/leads');
+          } else {
+            context.go('/role');
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Authentication failed: $e')),
         );
       }
     } finally {
@@ -344,23 +381,24 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () => setState(() {
-                                    _authMethod = 'phone';
+                                    _authMethod = 'email_otp';
                                     _otpSent = false;
+                                    _isSignUpMode = false;
                                   }),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                                     decoration: BoxDecoration(
-                                      color: _authMethod == 'phone' ? AppColors.darkCard : Colors.transparent,
+                                      color: _authMethod == 'email_otp' ? AppColors.darkCard : Colors.transparent,
                                       borderRadius: BorderRadius.circular(AppRadius.small),
-                                      border: _authMethod == 'phone'
+                                      border: _authMethod == 'email_otp'
                                           ? Border.all(color: AppColors.darkBorder, width: 1.0)
                                           : null,
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      'Phone Login',
+                                      'Email OTP',
                                       style: AppTypography.button.copyWith(
-                                        color: _authMethod == 'phone' ? AppColors.primaryLight : AppColors.textSecondary,
+                                        color: _authMethod == 'email_otp' ? AppColors.primaryLight : AppColors.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -369,23 +407,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () => setState(() {
-                                    _authMethod = 'email';
+                                    _authMethod = 'email_password';
                                     _otpSent = false;
                                   }),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                                     decoration: BoxDecoration(
-                                      color: _authMethod == 'email' ? AppColors.darkCard : Colors.transparent,
+                                      color: _authMethod == 'email_password' ? AppColors.darkCard : Colors.transparent,
                                       borderRadius: BorderRadius.circular(AppRadius.small),
-                                      border: _authMethod == 'email'
+                                      border: _authMethod == 'email_password'
                                           ? Border.all(color: AppColors.darkBorder, width: 1.0)
                                           : null,
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      'Email Login',
+                                      'Password Login',
                                       style: AppTypography.button.copyWith(
-                                        color: _authMethod == 'email' ? AppColors.primaryLight : AppColors.textSecondary,
+                                        color: _authMethod == 'email_password' ? AppColors.primaryLight : AppColors.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -404,110 +442,146 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             ),
                           )
                         else ...[
-                          // Dynamic input text field based on selected tab
-                          if (_authMethod == 'email')
-                            TextField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
-                              decoration: InputDecoration(
-                                labelText: 'Email Address',
-                                labelStyle: TextStyle(color: AppColors.textSecondary),
-                                hintText: 'contractor@example.com',
-                                hintStyle: TextStyle(color: AppColors.textHint),
-                                prefixIcon: const Icon(AppIcons.profile, color: AppColors.iconNormal),
-                              ),
-                              enabled: !_otpSent,
-                            )
-                          else
-                            TextField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
-                              decoration: InputDecoration(
-                                labelText: 'Phone Number',
-                                labelStyle: TextStyle(color: AppColors.textSecondary),
-                                hintText: '+919999999999',
-                                hintStyle: TextStyle(color: AppColors.textHint),
-                                prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.iconNormal),
-                              ),
-                              enabled: !_otpSent,
+                          // Email Input Field (Shared for both methods)
+                          TextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                            decoration: InputDecoration(
+                              labelText: 'Email Address',
+                              labelStyle: const TextStyle(color: AppColors.textSecondary),
+                              hintText: 'contractor@example.com',
+                              hintStyle: const TextStyle(color: AppColors.textHint),
+                              prefixIcon: const Icon(AppIcons.profile, color: AppColors.iconNormal),
                             ),
+                            enabled: !_otpSent,
+                          ),
                           const SizedBox(height: AppSpacing.lg),
-                          
-                          if (_otpSent) ...[
-                            Text(
-                              'Enter 6-Digit Verification Code',
-                              style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildOtpBox(_otp1Controller, _otp1FocusNode, _otp2FocusNode, null),
-                                _buildOtpBox(_otp2Controller, _otp2FocusNode, _otp3FocusNode, _otp1FocusNode),
-                                _buildOtpBox(_otp3Controller, _otp3FocusNode, _otp4FocusNode, _otp2FocusNode),
-                                _buildOtpBox(_otp4Controller, _otp4FocusNode, _otp5FocusNode, _otp3FocusNode),
-                                _buildOtpBox(_otp5Controller, _otp5FocusNode, _otp6FocusNode, _otp4FocusNode),
-                                _buildOtpBox(_otp6Controller, _otp6FocusNode, null, _otp5FocusNode),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            // Timer & Resend Option row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (_resendCountdown > 0)
-                                  Text(
-                                    'Resend code in $_resendCountdown seconds',
-                                    style: AppTypography.smallBody.copyWith(color: AppColors.textMuted),
-                                  )
-                                else
-                                  TextButton(
-                                    onPressed: _sendOtp,
-                                    child: Text(
-                                      'Resend Code',
-                                      style: AppTypography.smallBody.copyWith(
-                                        color: AppColors.primaryLight,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+
+                          // Dynamic password field or OTP fields
+                          if (_authMethod == 'email_password') ...[
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                labelStyle: const TextStyle(color: AppColors.textSecondary),
+                                hintText: '••••••••',
+                                hintStyle: const TextStyle(color: AppColors.textHint),
+                                prefixIcon: const Icon(Icons.lock_outline, color: AppColors.iconNormal),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                    color: AppColors.iconNormal,
                                   ),
-                              ],
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: AppSpacing.lg),
+                            const SizedBox(height: AppSpacing.xl),
                             Container(
                               decoration: BoxDecoration(
                                 gradient: AppGradients.primaryGradient,
                                 borderRadius: AppRadius.buttonBorderRadius,
                               ),
                               child: ElevatedButton(
-                                onPressed: _verifyOtp,
+                                onPressed: _loginWithPassword,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
                                   padding: const EdgeInsets.all(AppSpacing.lg),
                                 ),
-                                child: Text('Verify OTP', style: AppTypography.button.copyWith(color: Colors.white)),
+                                child: Text(
+                                  _isSignUpMode ? 'Register & Sign Up' : 'Login',
+                                  style: AppTypography.button.copyWith(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextButton(
+                              onPressed: () => setState(() => _isSignUpMode = !_isSignUpMode),
+                              child: Text(
+                                _isSignUpMode
+                                    ? 'Already have an account? Sign In'
+                                    : 'Don\'t have an account? Sign Up',
+                                style: AppTypography.smallBody.copyWith(color: AppColors.primaryLight),
                               ),
                             ),
                           ] else ...[
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: AppGradients.primaryGradient,
-                                borderRadius: AppRadius.buttonBorderRadius,
+                            if (_otpSent) ...[
+                              Text(
+                                'Enter 6-Digit Verification Code',
+                                style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
                               ),
-                              child: ElevatedButton(
-                                onPressed: _sendOtp,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  padding: const EdgeInsets.all(AppSpacing.lg),
+                              const SizedBox(height: AppSpacing.lg),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildOtpBox(_otp1Controller, _otp1FocusNode, _otp2FocusNode, null),
+                                  _buildOtpBox(_otp2Controller, _otp2FocusNode, _otp3FocusNode, _otp1FocusNode),
+                                  _buildOtpBox(_otp3Controller, _otp3FocusNode, _otp4FocusNode, _otp2FocusNode),
+                                  _buildOtpBox(_otp4Controller, _otp4FocusNode, _otp5FocusNode, _otp3FocusNode),
+                                  _buildOtpBox(_otp5Controller, _otp5FocusNode, _otp6FocusNode, _otp4FocusNode),
+                                  _buildOtpBox(_otp6Controller, _otp6FocusNode, null, _otp5FocusNode),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (_resendCountdown > 0)
+                                    Text(
+                                      'Resend code in $_resendCountdown seconds',
+                                      style: AppTypography.smallBody.copyWith(color: AppColors.textMuted),
+                                    )
+                                  else
+                                    TextButton(
+                                      onPressed: _sendOtp,
+                                      child: Text(
+                                        'Resend Code',
+                                        style: AppTypography.smallBody.copyWith(
+                                          color: AppColors.primaryLight,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppGradients.primaryGradient,
+                                  borderRadius: AppRadius.buttonBorderRadius,
                                 ),
-                                child: Text('Send Verification Code', style: AppTypography.button.copyWith(color: Colors.white)),
+                                child: ElevatedButton(
+                                  onPressed: _verifyOtp,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.all(AppSpacing.lg),
+                                  ),
+                                  child: Text('Verify OTP', style: AppTypography.button.copyWith(color: Colors.white)),
+                                ),
                               ),
-                            ),
+                            ] else ...[
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppGradients.primaryGradient,
+                                  borderRadius: AppRadius.buttonBorderRadius,
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _sendOtp,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.all(AppSpacing.lg),
+                                  ),
+                                  child: Text('Send Verification Code', style: AppTypography.button.copyWith(color: Colors.white)),
+                                ),
+                              ),
+                            ],
                           ],
                           
                           const SizedBox(height: AppSpacing.xxl),
