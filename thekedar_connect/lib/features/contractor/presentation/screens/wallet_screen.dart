@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:js' as js;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -37,15 +39,19 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    if (!kIsWeb) {
+      _razorpay = Razorpay();
+      _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+      _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+      _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    }
   }
 
   @override
   void dispose() {
-    _razorpay.clear();
+    if (!kIsWeb) {
+      _razorpay.clear();
+    }
     super.dispose();
   }
 
@@ -123,9 +129,40 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       Navigator.pop(context); // Dismiss loading dialog
     }
 
+    final calculatedAmount = (int.parse(amount.replaceAll(RegExp(r'[^0-9]'), '')) * 100);
+
+    if (kIsWeb) {
+      // Open Razorpay on Web using JavaScript checkout.js
+      final webOptions = js.JsObject.jsify({
+        'key': key,
+        'amount': calculatedAmount,
+        'name': 'Thekedar Connect',
+        'description': title,
+        'prefill': {
+          'contact': '9876543210',
+          'email': 'contractor@thekedar.com',
+        },
+        'handler': js.JsFunction.withThis((_, response) {
+          // Success callback
+          final paymentId = response['razorpay_payment_id'];
+          debugPrint('Web Payment Success: $paymentId');
+          _creditWallet();
+        }),
+        'modal': {
+          'ondismiss': js.JsFunction.withThis((_) {
+            debugPrint('Web Payment dismissed');
+          })
+        }
+      });
+
+      final razorpayObj = js.JsObject(js.context['Razorpay'], [webOptions]);
+      razorpayObj.callMethod('open');
+      return;
+    }
+
     final options = {
       'key': key,
-      'amount': (int.parse(amount.replaceAll(RegExp(r'[^0-9]'), '')) * 100),
+      'amount': calculatedAmount,
       'name': 'Thekedar Connect',
       'description': title,
       'prefill': {
