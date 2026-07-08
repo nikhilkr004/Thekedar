@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen.dart';
 import '../../features/auth/presentation/screens/role_selection_screen.dart';
@@ -16,6 +17,32 @@ import '../../features/notifications/presentation/screens/notification_center_sc
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/splash',
+    redirect: (context, state) {
+      final session = Supabase.instance.client.auth.currentSession;
+      final matchedLocation = state.matchedLocation;
+
+      final isPublicRoute = matchedLocation == '/auth' || 
+                            matchedLocation == '/splash' || 
+                            matchedLocation == '/language';
+
+      if (session == null) {
+        if (!isPublicRoute) {
+          return '/auth';
+        }
+      } else {
+        if (matchedLocation == '/auth' || matchedLocation == '/splash') {
+          final role = session.user.userMetadata?['role'];
+          if (role == 'customer') {
+            return '/customer_home';
+          } else if (role == 'contractor') {
+            return '/leads';
+          } else {
+            return '/role';
+          }
+        }
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/splash',

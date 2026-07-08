@@ -248,21 +248,166 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
         final safeIndex = _currentIndex < screens.length ? _currentIndex : 0;
 
-        return Scaffold(
-          body: IndexedStack(
-            index: safeIndex,
-            children: screens,
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: safeIndex,
-            selectedItemColor: AppColors.primaryLight,
-            unselectedItemColor: AppColors.textMuted,
+        Widget buildSidebar(String role) {
+          return Container(
+            width: 250,
+            decoration: const BoxDecoration(
+              color: AppColors.darkSurface,
+              border: Border(right: BorderSide(color: AppColors.darkBorder, width: 1.0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.primaryGradient,
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: const Icon(AppIcons.handyman, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Thekedar',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.darkBorder),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: navItems.length,
+                    itemBuilder: (context, idx) {
+                      final item = navItems[idx];
+                      final isActive = idx == safeIndex;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        child: InkWell(
+                          onTap: () => _onTabTapped(role, idx),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isActive ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  (item.icon as Icon).icon,
+                                  color: isActive ? AppColors.primaryLight : AppColors.textSecondary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  item.label ?? '',
+                                  style: TextStyle(
+                                    color: isActive ? AppColors.primaryLight : AppColors.textSecondary,
+                                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.darkBorder),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await Supabase.instance.client.auth.signOut();
+                      if (mounted) context.go('/auth');
+                    },
+                    icon: const Icon(Icons.logout, color: AppColors.error, size: 18),
+                    label: const Text('Log out', style: TextStyle(color: AppColors.error, fontSize: 13)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        Widget buildNavigationRail(String role) {
+          return NavigationRail(
+            selectedIndex: safeIndex,
             backgroundColor: AppColors.darkSurface,
-            type: BottomNavigationBarType.fixed,
-            items: navItems,
-            onTap: (index) => _onTabTapped(role, index),
-          ),
-        );
+            selectedIconTheme: const IconThemeData(color: AppColors.primaryLight),
+            unselectedIconTheme: const IconThemeData(color: AppColors.textMuted),
+            selectedLabelTextStyle: const TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.bold),
+            unselectedLabelTextStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+            onDestinationSelected: (index) => _onTabTapped(role, index),
+            labelType: NavigationRailLabelType.all,
+            destinations: navItems.map((item) {
+              return NavigationRailDestination(
+                icon: item.icon,
+                label: Text(item.label ?? ''),
+              );
+            }).toList(),
+          );
+        }
+
+        final double screenWidth = MediaQuery.of(context).size.width;
+
+        if (screenWidth > 900) {
+          return Scaffold(
+            body: Row(
+              children: [
+                buildSidebar(role),
+                Expanded(
+                  child: IndexedStack(
+                    index: safeIndex,
+                    children: screens,
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else if (screenWidth > 600) {
+          return Scaffold(
+            body: Row(
+              children: [
+                buildNavigationRail(role),
+                Expanded(
+                  child: IndexedStack(
+                    index: safeIndex,
+                    children: screens,
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Scaffold(
+            body: IndexedStack(
+              index: safeIndex,
+              children: screens,
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: safeIndex,
+              selectedItemColor: AppColors.primaryLight,
+              unselectedItemColor: AppColors.textMuted,
+              backgroundColor: AppColors.darkSurface,
+              type: BottomNavigationBarType.fixed,
+              items: navItems,
+              onTap: (index) => _onTabTapped(role, index),
+            ),
+          );
+        }
       },
       loading: () => const Scaffold(
         backgroundColor: AppColors.darkBackground,
