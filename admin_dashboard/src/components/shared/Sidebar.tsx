@@ -16,7 +16,8 @@ import {
   History, 
   LifeBuoy, 
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Coins
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -32,6 +33,8 @@ const menuItems: SidebarItem[] = [
   { name: 'App CMS', href: '/cms', icon: FileText, module: 'cms' },
   { name: 'Feature Flags', href: '/feature-flags', icon: Flag, module: 'flags' },
   { name: 'App Configuration', href: '/config', icon: Settings, module: 'config' },
+  { name: 'Coin Packages', href: '/wallet/packages', icon: Coins, module: 'config' },
+  { name: 'Coin Bidding Rules', href: '/wallet/rules', icon: Coins, module: 'config' },
   { name: 'Notifications Center', href: '/notifications', icon: Bell, module: 'notifications' },
   { name: 'Analytics Insights', href: '/analytics', icon: BarChart3, module: 'analytics' },
   { name: 'Support Tickets', href: '/support', icon: LifeBuoy, module: 'support' },

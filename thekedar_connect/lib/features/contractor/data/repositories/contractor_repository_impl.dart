@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import '../../domain/repositories/contractor_repository.dart';
 import '../../presentation/models/contractor_profile.dart';
 
@@ -132,7 +133,7 @@ class ContractorRepositoryImpl implements ContractorRepository {
       'contractor_id': contractor['id'],
       'credits': -amount,
       'type': 'spend',
-      'description': 'Spent $amount credits to unlock project lead',
+      'description': 'Spent $amount coins to unlock project lead',
     });
   }
 
@@ -190,16 +191,30 @@ class ContractorRepositoryImpl implements ContractorRepository {
           .single();
       final budgetMax = (project['budget_max'] ?? 0) as int;
 
-      // Calculate cost based on budget
-      int cost = 3; // default
-      if (budgetMax >= 2000000) {
-        cost = 20;
-      } else if (budgetMax >= 500000) {
-        cost = 12;
-      } else if (budgetMax >= 200000) {
-        cost = 8;
-      } else if (budgetMax >= 50000) {
-        cost = 5;
+      // Calculate cost dynamically based on database rules
+      int cost = 10; // default/fallback
+      try {
+        final rulesResponse = await _supabase
+            .from('bid_charge_rules')
+            .select('charge_coins')
+            .eq('is_active', true)
+            .lte('min_budget', budgetMax)
+            .or('max_budget.gte.$budgetMax,max_budget.is.null')
+            .order('min_budget', ascending: false)
+            .limit(1)
+            .maybeSingle();
+        if (rulesResponse != null && rulesResponse['charge_coins'] != null) {
+          cost = rulesResponse['charge_coins'] as int;
+        }
+      } catch (e) {
+        debugPrint('Error getting dynamic charge rule: $e');
+        if (budgetMax >= 500000) {
+          cost = 50;
+        } else if (budgetMax >= 50000) {
+          cost = 20;
+        } else {
+          cost = 10;
+        }
       }
 
       // 3. Deduct credits (will throw if insufficient)
@@ -282,8 +297,8 @@ class ContractorRepositoryImpl implements ContractorRepository {
       'contractor_id': contractorId,
       'credits': amount,
       'type': 'purchase',
-      'amount_inr': amount * 10, // approximate pricing
-      'description': 'Purchased $amount credits via Razorpay',
+      'amount_inr': amount, // ₹1 = 1 Coin conversion rule
+      'description': 'Purchased $amount coins via Razorpay',
     });
   }
 

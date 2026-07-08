@@ -24,6 +24,26 @@ final razorpayKeyProvider = FutureProvider<String>((ref) async {
   return 'rzp_test_Sw1y7ceIZ6e1Ot'; // fallback default test key
 });
 
+final coinPackagesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  try {
+    final response = await Supabase.instance.client
+        .from('coin_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_inr', ascending: true);
+    return List<Map<String, dynamic>>.from(response);
+  } catch (e) {
+    debugPrint('Error fetching coin packages: $e');
+    return [
+      {'price_inr': 100, 'coins': 100, 'bonus_coins': 0},
+      {'price_inr': 500, 'coins': 500, 'bonus_coins': 50},
+      {'price_inr': 1000, 'coins': 1000, 'bonus_coins': 150},
+      {'price_inr': 2500, 'coins': 2500, 'bonus_coins': 500},
+      {'price_inr': 5000, 'coins': 5000, 'bonus_coins': 1500},
+    ];
+  }
+});
+
 class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
 
@@ -100,14 +120,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     );
   }
 
-  void _openPurchaseSelection(String title, String amount) {
-    try {
-      _pendingCredits = int.parse(title.replaceAll(RegExp(r'[^0-9]'), ''));
-    } catch (_) {
-      _pendingCredits = 50;
-    }
-
-    _openRazorpayCheckout(title, amount);
+  void _openPurchaseSelection(int totalCoins, double priceInr) {
+    _pendingCredits = totalCoins;
+    _openRazorpayCheckout('$totalCoins Coins', '₹${priceInr.toStringAsFixed(0)}');
   }
 
   void _openRazorpayCheckout(String title, String amount) async {
@@ -192,6 +207,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   Widget build(BuildContext context) {
     final walletAsync = ref.watch(walletProvider);
     final txAsync = ref.watch(walletTransactionsProvider);
+    final packagesAsync = ref.watch(coinPackagesProvider);
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isLargeScreen = screenWidth > 840;
 
@@ -205,7 +221,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
-          'My Wallet',
+          'My Coins Wallet',
           style: AppTypography.title.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -255,14 +271,14 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                           child: Column(
                             children: [
                               Text(
-                                'Available Balance',
+                                'Available Coins Balance',
                                 style: AppTypography.caption.copyWith(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.wallet, color: Colors.white, size: 36),
+                                  const Icon(Icons.monetization_on, color: Colors.amber, size: 36),
                                   const SizedBox(width: 8),
                                   Text(
                                     '$balance',
@@ -276,9 +292,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              const Text(
-                                'Credits',
-                                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                              Text(
+                                'Equivalent Value: ₹$balance',
+                                style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
                               ),
                               const SizedBox(height: 24),
                               Row(
@@ -293,12 +309,12 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                       child: Column(
                                         children: [
                                           const Text(
-                                            'Lifetime Earned',
+                                            'Bonus Earned',
                                             style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '$totalEarned Cr',
+                                            '$totalEarned Coins',
                                             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                                           ),
                                         ],
@@ -316,12 +332,12 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                       child: Column(
                                         children: [
                                           const Text(
-                                            'Last Spend',
+                                            'Last Spent',
                                             style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '$lastSpend Cr',
+                                            '${lastSpend.abs()} Coins',
                                             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                                           ),
                                         ],
@@ -335,16 +351,52 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        // 2. Buy More Credits Section
+                        // 2. Buy More Coins Section
                         Text(
-                          'Buy More Credits',
+                          'Recharge Packages',
                           style: AppTypography.smallBody.copyWith(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                         const SizedBox(height: AppSpacing.lg),
 
-                        _buildCreditPackageCard('50 Credits', '₹ 500', Icons.monetization_on_outlined, false),
-                        _buildCreditPackageCard('100 Credits', '₹ 900', Icons.payments_outlined, false),
-                        _buildCreditPackageCard('200 Credits', '₹ 1700', Icons.stars_outlined, true),
+                        packagesAsync.when(
+                          data: (packages) {
+                            return Column(
+                              children: packages.map((pkg) {
+                                final price = pkg['price_inr'] is int 
+                                    ? (pkg['price_inr'] as int).toDouble() 
+                                    : (pkg['price_inr'] as num).toDouble();
+                                final coins = pkg['coins'] as int;
+                                final bonus = pkg['bonus_coins'] as int? ?? 0;
+                                final totalCoins = coins + bonus;
+                                final hasBestValueBadge = price >= 1000;
+                                final titleText = bonus > 0 
+                                    ? '$coins + $bonus Bonus Coins' 
+                                    : '$coins Coins';
+
+                                return _buildCoinPackageCard(
+                                  titleText, 
+                                  '₹${price.toStringAsFixed(0)}', 
+                                  Icons.monetization_on_outlined, 
+                                  hasBestValueBadge,
+                                  totalCoins,
+                                  price,
+                                );
+                              }).toList(),
+                            );
+                          },
+                          loading: () => const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: CircularProgressIndicator(color: AppColors.primary),
+                            ),
+                          ),
+                          error: (e, st) => Center(
+                            child: Text(
+                              'Error loading packages: $e',
+                              style: const TextStyle(color: AppColors.error),
+                            ),
+                          ),
+                        ),
 
                         const SizedBox(height: 28),
 
@@ -460,7 +512,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        isSpend ? '$credits Credits' : '+$credits Credits',
+                                        isSpend ? '$credits Coins' : '+$credits Coins',
                                         style: AppTypography.smallBody.copyWith(
                                           fontWeight: FontWeight.bold,
                                           color: isSpend ? AppColors.error : AppColors.success,
@@ -517,7 +569,14 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     );
   }
 
-  Widget _buildCreditPackageCard(String title, String price, IconData icon, bool hasBestValueBadge) {
+  Widget _buildCoinPackageCard(
+    String title, 
+    String price, 
+    IconData icon, 
+    bool hasBestValueBadge,
+    int totalCoins,
+    double priceInr,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -579,7 +638,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 const SizedBox(width: 8),
               ],
               ElevatedButton(
-                onPressed: () => _openPurchaseSelection(title, price),
+                onPressed: () => _openPurchaseSelection(totalCoins, priceInr),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
