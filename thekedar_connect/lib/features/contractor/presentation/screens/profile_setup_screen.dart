@@ -375,6 +375,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   }
 
   Future<void> _submit() async {
+    final profileAsync = ref.read(contractorProfileProvider);
+    final profile = profileAsync.value;
+    final bool isUpdateMode = profile != null && 
+        profile.status != 'DRAFT' && 
+        profile.status != 'PROFILE_INCOMPLETE';
+
     if (_businessNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter business name')),
@@ -400,7 +406,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 2. Upload Aadhaar Doc if changed
       String? aadhaarDocUrl = _aadhaarDocUrl;
-      if (_aadhaarBytes != null) {
+      if (_aadhaarBytes != null && !isUpdateMode) {
         final isPdf = _aadhaarName?.toLowerCase().endsWith('.pdf') ?? false;
         final ext = isPdf ? 'pdf' : 'jpg';
         final fileName = 'aadhaar_${DateTime.now().millisecondsSinceEpoch}.$ext';
@@ -414,7 +420,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 3. Upload PAN Doc if changed
       String? panDocUrl = _panDocUrl;
-      if (_panBytes != null) {
+      if (_panBytes != null && !isUpdateMode) {
         final isPdf = _panName?.toLowerCase().endsWith('.pdf') ?? false;
         final ext = isPdf ? 'pdf' : 'jpg';
         final fileName = 'pan_${DateTime.now().millisecondsSinceEpoch}.$ext';
@@ -428,7 +434,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
       // 4. Upload GST Doc if changed
       String? gstDocUrl = _gstDocUrl;
-      if (_gstBytes != null) {
+      if (_gstBytes != null && !isUpdateMode) {
         final isPdf = _gstName?.toLowerCase().endsWith('.pdf') ?? false;
         final ext = isPdf ? 'pdf' : 'jpg';
         final fileName = 'gst_${DateTime.now().millisecondsSinceEpoch}.$ext';
@@ -486,6 +492,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           'gst_doc_url': gstDocUrl,
           'portfolio_urls': portfolioUrls,
           'average_rating': 5.0,
+          'status': 'PENDING_VERIFICATION',
         }).select().single();
 
         // Initialize wallet for new contractor
@@ -495,7 +502,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         });
       } else {
         // Update profile
-        await Supabase.instance.client.from('contractors').update({
+        final Map<String, dynamic> updateMap = {
           'business_name': _businessNameController.text,
           'years_experience': int.tryParse(_experienceController.text) ?? 0,
           'projects_completed': int.tryParse(_projectsCompletedController.text) ?? 0,
@@ -509,23 +516,34 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             'facebook': _facebookController.text,
             'website': _websiteController.text,
           },
-          'aadhaar_verified': _aadhaarStatus == 'VERIFIED' || _aadhaarStatus == 'SELECTED',
-          'pan_verified': _panStatus == 'VERIFIED' || _panStatus == 'SELECTED',
-          'gst_verified': _gstStatus == 'VERIFIED' || _gstStatus == 'SELECTED',
-          'aadhaar_doc_url': aadhaarDocUrl,
-          'pan_doc_url': panDocUrl,
-          'gst_doc_url': gstDocUrl,
           'portfolio_urls': portfolioUrls,
-        }).eq('user_id', userId);
+        };
+
+        if (!isUpdateMode) {
+          updateMap['status'] = 'PENDING_VERIFICATION';
+          updateMap['aadhaar_verified'] = _aadhaarStatus == 'VERIFIED' || _aadhaarStatus == 'SELECTED';
+          updateMap['pan_verified'] = _panStatus == 'VERIFIED' || _panStatus == 'SELECTED';
+          updateMap['gst_verified'] = _gstStatus == 'VERIFIED' || _gstStatus == 'SELECTED';
+          updateMap['aadhaar_doc_url'] = aadhaarDocUrl;
+          updateMap['pan_doc_url'] = panDocUrl;
+          updateMap['gst_doc_url'] = gstDocUrl;
+        }
+
+        await Supabase.instance.client.from('contractors').update(updateMap).eq('user_id', userId);
       }
 
       // Update personal info in users table
-      await Supabase.instance.client.from('users').update({
-        'full_name': _fullNameController.text,
-        'phone': _phoneController.text,
+      final Map<String, dynamic> userUpdateMap = {
         'address': _addressController.text,
         'profile_photo_url': profilePhotoUrl,
-      }).eq('id', userId);
+      };
+
+      if (!isUpdateMode) {
+        userUpdateMap['full_name'] = _fullNameController.text;
+        userUpdateMap['phone'] = _phoneController.text;
+      }
+
+      await Supabase.instance.client.from('users').update(userUpdateMap).eq('id', userId);
 
       ref.invalidate(contractorProfileProvider);
       ref.invalidate(walletBalanceProvider);
@@ -598,7 +616,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           }
         }
         if (profile == null || _isEditing) {
-          return _buildProfileSetupForm();
+          return _buildProfileSetupForm(profile);
         }
         return _buildPremiumProfileView(profile);
       },
@@ -1598,7 +1616,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     return percentage > 100 ? 100 : percentage;
   }
 
-  Widget _buildProfileSetupForm() {
+  Widget _buildProfileSetupForm(ContractorProfile? profile) {
+    final bool isUpdateMode = profile != null && 
+        profile.status != 'DRAFT' && 
+        profile.status != 'PROFILE_INCOMPLETE';
+
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: AppColors.darkBorder, width: 1.2),
@@ -1716,6 +1738,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: _fullNameController,
+                        readOnly: isUpdateMode,
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: 'John Doe',
@@ -1736,6 +1759,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       const SizedBox(height: 6),
                       TextField(
                         controller: _phoneController,
+                        readOnly: isUpdateMode,
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           hintText: '+91 98765 43210',
@@ -2050,6 +2074,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         formatInfo: 'FORMAT: JPG, PDF (MAX 2MB)',
                         status: _panStatus,
                         onUploadTap: () => _pickDocument('pan'),
+                        isEditable: !isUpdateMode,
                       ),
                       if (_panBytes == null && _panDocUrl != null && _panDocUrl!.isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -2079,6 +2104,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         formatInfo: 'FORMAT: PDF (MAX 5MB)',
                         status: _gstStatus,
                         onUploadTap: () => _pickDocument('gst'),
+                        isEditable: !isUpdateMode,
                       ),
                       if (_gstBytes == null && _gstDocUrl != null && _gstDocUrl!.isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -2108,6 +2134,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         formatInfo: 'FORMAT: JPG, PDF (MAX 2MB)',
                         status: _aadhaarStatus,
                         onUploadTap: () => _pickDocument('aadhaar'),
+                        isEditable: !isUpdateMode,
                       ),
                       if (_aadhaarBytes == null && _aadhaarDocUrl != null && _aadhaarDocUrl!.isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -2297,20 +2324,25 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
-                          icon: const Icon(Icons.verified_user_outlined, size: 20),
-                          label: const Text(
-                            'Submit for Verification',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          icon: Icon(
+                            isUpdateMode ? Icons.save_outlined : Icons.verified_user_outlined, 
+                            size: 20
+                          ),
+                          label: Text(
+                            isUpdateMode ? 'Update' : 'Submit for Verification',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                         ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'BY SUBMITTING, YOU AGREE TO OUR VERIFICATION TERMS & CONDITIONS.',
-                  style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w600),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
+                if (!isUpdateMode) ...[
+                  const Text(
+                    'BY SUBMITTING, YOU AGREE TO OUR VERIFICATION TERMS & CONDITIONS.',
+                    style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                ],
 
                 // 7. Why Verify Card
                 Container(
@@ -2465,6 +2497,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     required String formatInfo,
     required String status,
     required VoidCallback onUploadTap,
+    bool isEditable = true,
   }) {
     Color statusColor = AppColors.textMuted;
     Color statusBg = AppColors.darkDivider;
@@ -2524,20 +2557,29 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               ),
             ),
             const Spacer(),
-            SizedBox(
-              height: 32,
-              child: ElevatedButton(
-                onPressed: onUploadTap,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryLight,
-                  foregroundColor: AppColors.darkCard,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+            if (isEditable)
+              SizedBox(
+                height: 32,
+                child: ElevatedButton(
+                  onPressed: onUploadTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryLight,
+                    foregroundColor: AppColors.darkCard,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  child: Text(status == 'VERIFIED' ? 'Change' : 'Upload', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
-                child: Text(status == 'VERIFIED' ? 'Change' : 'Upload', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              )
+            else
+              const SizedBox(
+                height: 32,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Icon(Icons.lock_outline, color: AppColors.textMuted, size: 16),
+                ),
               ),
-            ),
           ],
         ),
       ],
